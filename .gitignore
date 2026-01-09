@@ -47,4 +47,5 @@ coverage
 *.tgz
 .cache
 tmp
-templocal.db
+temp
+local.db
