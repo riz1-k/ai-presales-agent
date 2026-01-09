@@ -1,0 +1,26 @@
+{
+  "name": "@ai-presales-agent/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@ai-presales-agent/auth": "workspace:*",
+    "@ai-presales-agent/db": "workspace:*",
+    "@ai-presales-agent/env": "workspace:*",
+    "@trpc/client": "catalog:",
+    "@trpc/server": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@ai-presales-agent/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

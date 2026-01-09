@@ -1,0 +1,3 @@
+{
+  "extends": "@ai-presales-agent/config/tsconfig.base.json"
+}

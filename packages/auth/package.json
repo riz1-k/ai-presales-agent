@@ -1,0 +1,24 @@
+{
+  "name": "@ai-presales-agent/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@ai-presales-agent/db": "workspace:*",
+    "@ai-presales-agent/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@ai-presales-agent/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
