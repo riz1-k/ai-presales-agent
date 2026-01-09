@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useState } from "react";
+import { use, useState } from "react";
 import { Streamdown } from "streamdown";
 import {
 	ChatContainer,
@@ -16,70 +16,29 @@ import {
 	WBSView,
 } from "@/components/documents";
 import { ProjectHeader } from "@/components/project";
-
-// Mock data for demonstration - will be replaced with real data
-interface Message {
-	id: string;
-	role: "user" | "assistant" | "system";
-	content: string;
-	timestamp: Date;
-	status: "sending" | "sent" | "error";
-}
+import { useProjectChat } from "@/hooks/useProjectChat";
 
 interface ProjectPageProps {
 	params: Promise<{ id: string }>;
 }
 
 export default function ProjectPage({ params }: ProjectPageProps) {
-	use(params);
+	const { id: projectId } = use(params);
 
-	// Mock project state - will be replaced with tRPC queries
+	// Project state - will be replaced with tRPC queries
 	const [projectName, setProjectName] = useState("New Project");
-	const [messages, setMessages] = useState<Message[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
 	const [activeTab, setActiveTab] = useState<DocumentTabType>("proposal");
 
-	// Mock document data
+	// Mock document data - will be replaced with real data
 	const [documents] = useState({
 		proposal: null as string | null,
 		resource_plan: null as string | null,
 		wbs: null as string | null,
 	});
 
-	// Handle sending messages (mock for now)
-	const handleSendMessage = useCallback((content: string) => {
-		const userMessage: Message = {
-			id: crypto.randomUUID(),
-			role: "user",
-			content,
-			timestamp: new Date(),
-			status: "sent",
-		};
-
-		setMessages((prev) => [...prev, userMessage]);
-		setIsLoading(true);
-
-		// Simulate AI response
-		setTimeout(() => {
-			const aiMessage: Message = {
-				id: crypto.randomUUID(),
-				role: "assistant",
-				content: `Thank you for sharing that! I'm gathering information about your project. Let me ask you a few questions to help create a comprehensive proposal.\n\nCould you tell me more about:\n1. The main goals or objectives of this project?\n2. Who is the target audience?\n3. Are there any specific technical requirements or preferences?`,
-				timestamp: new Date(),
-				status: "sent",
-			};
-			setMessages((prev) => [...prev, aiMessage]);
-			setIsLoading(false);
-		}, 1500);
-	}, []);
-
-	// Handle suggestion click from empty state
-	const handleSuggestionClick = useCallback(
-		(suggestion: string) => {
-			handleSendMessage(suggestion);
-		},
-		[handleSendMessage],
-	);
+	// Use project chat hook for AI conversation
+	const { messages, isLoading, isLoadingHistory, error, sendMessage } =
+		useProjectChat({ projectId });
 
 	// Render document content based on active tab
 	const renderDocumentContent = (tab: DocumentTabType) => {
@@ -110,34 +69,69 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 				<div className="flex w-1/2 flex-col border-border border-r lg:w-[45%]">
 					{/* Chat messages */}
 					<div className="flex-1 overflow-hidden">
-						{messages.length === 0 ? (
-							<ChatEmptyState onSuggestionClick={handleSuggestionClick} />
+						{isLoadingHistory ? (
+							<div className="flex h-full items-center justify-center">
+								<div className="text-muted-foreground">
+									Loading conversation...
+								</div>
+							</div>
+						) : messages.length === 0 ? (
+							<ChatEmptyState onSuggestionClick={sendMessage} />
 						) : (
 							<ChatContainer isLoading={isLoading}>
-								{messages.map((message) => (
-									<ChatMessage
-										key={message.id}
-										id={message.id}
-										role={message.role}
-										content={
-											message.role === "assistant" ? (
-												<Streamdown isAnimating={false}>
-													{message.content}
-												</Streamdown>
-											) : (
-												message.content
-											)
+								{messages.map((message) => {
+									// Extract text content from message
+									const getContent = () => {
+										if ("parts" in message && message.parts) {
+											return message.parts
+												.map((part) => (part.type === "text" ? part.text : ""))
+												.join("");
 										}
-										timestamp={message.timestamp}
-										status={message.status}
-									/>
-								))}
+										if (
+											"content" in message &&
+											typeof message.content === "string"
+										) {
+											return message.content;
+										}
+										return "";
+									};
+
+									const content = getContent();
+
+									return (
+										<ChatMessage
+											key={message.id}
+											id={message.id}
+											role={message.role as "user" | "assistant" | "system"}
+											content={
+												message.role === "assistant" ? (
+													<Streamdown isAnimating={isLoading}>
+														{content}
+													</Streamdown>
+												) : (
+													content
+												)
+											}
+											status="sent"
+										/>
+									);
+								})}
 							</ChatContainer>
 						)}
 					</div>
 
+					{/* Error display */}
+					{error && (
+						<div className="border-destructive border-t bg-destructive/10 px-4 py-2 text-destructive text-sm">
+							Error: {error.message}
+						</div>
+					)}
+
 					{/* Chat input */}
-					<ChatInput onSend={handleSendMessage} disabled={isLoading} />
+					<ChatInput
+						onSend={sendMessage}
+						disabled={isLoading || isLoadingHistory}
+					/>
 				</div>
 
 				{/* Document Panel (right side) */}

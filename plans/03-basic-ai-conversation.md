@@ -9,12 +9,13 @@ Connect the chat interface to Gemini via AI SDK. This phase establishes basic co
 - ✅ Phase 1: Foundation Setup (database schema)
 - ✅ Phase 2: Chat Interface (UI components)
 
-## Current Status: ⏳ PARTIAL
+## Current Status: ✅ COMPLETE
 
 - ✅ Basic AI endpoint exists at `apps/server/src/index.ts` (`/ai` route)
 - ✅ AI SDK with Gemini configured
 - ✅ Basic streaming working with `useChat` hook
-- ⏳ **Missing**: Project-scoped conversations, system prompts, context management
+- ✅ Project-scoped conversations with system prompts
+- ✅ Context management and message persistence
 
 ---
 
@@ -24,16 +25,16 @@ Connect the chat interface to Gemini via AI SDK. This phase establishes basic co
 
 Update `apps/server/src/index.ts` or create dedicated AI router:
 
-- [ ] Create `/ai/[projectId]` endpoint (or `/ai?projectId=xxx`)
-- [ ] Accept project ID parameter
-- [ ] Load project context before generating response
-- [ ] Include system prompt with project context
+- [x] Create `/ai/[projectId]` endpoint (or `/ai?projectId=xxx`)
+- [x] Accept project ID parameter
+- [x] Load project context before generating response
+- [x] Include system prompt with project context
 
 ### 3.2 Create AI Configuration
 
 Create `apps/server/src/ai/` directory:
 
-- [ ] **`config.ts`** - AI model configuration
+- [x] **`config.ts`** - AI model configuration
   ```typescript
   export const AI_CONFIG = {
     model: 'gemini-2.5-flash',
@@ -42,7 +43,7 @@ Create `apps/server/src/ai/` directory:
   }
   ```
 
-- [ ] **`prompts.ts`** - System prompts
+- [x] **`prompts.ts`** - System prompts
   ```typescript
   export const SYSTEM_PROMPTS = {
     presalesAgent: `You are an AI presales assistant helping gather 
@@ -64,32 +65,32 @@ Create `apps/server/src/ai/` directory:
 
 ### 3.3 Implement Conversation History Loading
 
-- [ ] Create function to fetch last N messages from database
-- [ ] Format messages for AI SDK's expected structure
-- [ ] Handle first message (no history) case
-- [ ] Limit context window (last 10-15 messages + summary of earlier)
+- [x] Create function to fetch last N messages from database
+- [x] Format messages for AI SDK's expected structure
+- [x] Handle first message (no history) case
+- [x] Limit context window (last 10-15 messages + summary of earlier)
 
 ### 3.4 Update Chat Component for Project Context
 
 Update `apps/web/src/components/chat/`:
 
-- [ ] Pass project ID to useChat hook
-- [ ] Update API endpoint URL to include project ID
-- [ ] Handle project-specific error states
-- [ ] Show project name in chat header
+- [x] Pass project ID to useChat hook
+- [x] Update API endpoint URL to include project ID
+- [x] Handle project-specific error states
+- [x] Show project name in chat header
 
 ### 3.5 Implement Message Streaming
 
-- [ ] Ensure streaming tokens display character-by-character
-- [ ] Add typing indicator while waiting for first token
-- [ ] Handle stream interruption gracefully
-- [ ] Implement stop generation button
+- [x] Ensure streaming tokens display character-by-character
+- [x] Add typing indicator while waiting for first token
+- [x] Handle stream interruption gracefully
+- [ ] Implement stop generation button (deferred to optimization phase)
 
 ### 3.6 Create Message Persistence Hooks
 
 Create `apps/web/src/hooks/`:
 
-- [ ] **`useProjectChat.ts`** - Custom hook wrapping useChat
+- [x] **`useProjectChat.ts`** - Custom hook wrapping useChat
   ```typescript
   export function useProjectChat(projectId: string) {
     // Load initial messages from server
@@ -99,22 +100,15 @@ Create `apps/web/src/hooks/`:
   }
   ```
 
-- [ ] **`useConversation.ts`** - Conversation management
-  ```typescript
-  export function useConversation(projectId: string) {
-    // Fetch conversation history
-    // Save new messages to server
-    // Handle optimistic updates
-  }
-  ```
+- [x] Conversation management integrated into useProjectChat hook
 
 ### 3.7 Create Conversation tRPC Routes
 
 Add to `packages/api/src/routers/conversations.ts`:
 
-- [ ] `getMessages` - Fetch messages for a project
-- [ ] `saveMessage` - Save a single message
-- [ ] `clearConversation` - Clear all messages for a project
+- [x] `getMessages` - Fetch messages for a project
+- [x] `saveMessage` - Save a single message
+- [x] `clearConversation` - Clear all messages for a project
 
 ---
 
