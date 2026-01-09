@@ -1,8 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-
 import { authClient } from "@/lib/auth-client";
-
 import Dashboard from "./dashboard";
 
 export default async function DashboardPage() {
@@ -18,10 +16,11 @@ export default async function DashboardPage() {
 	}
 
 	return (
-		<div>
-			<h1>Dashboard</h1>
-			<p>Welcome {session.user.name}</p>
-			<Dashboard />
-		</div>
+		<main className="flex-1 overflow-y-auto bg-background/50 backdrop-blur-3xl">
+			<div className="pointer-events-none absolute inset-0 bg-[size:32px_32px] bg-grid-white/[0.02]" />
+			<div className="relative">
+				<Dashboard />
+			</div>
+		</main>
 	);
 }

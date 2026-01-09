@@ -32,7 +32,7 @@ export function ChatContainer({
 			bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 		}
 		// biome-ignore lint/correctness/useExhaustiveDependencies: scroll to bottom when children change
-	}, [children, showScrollButton]);
+	}, [showScrollButton]);
 
 	const scrollToBottom = () => {
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" });

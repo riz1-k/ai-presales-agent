@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2, RotateCcw, Sparkles } from "lucide-react";
 import { use, useState } from "react";
 import { Streamdown } from "streamdown";
 import {
@@ -16,7 +17,9 @@ import {
 	WBSView,
 } from "@/components/documents";
 import { ProjectHeader } from "@/components/project";
-import { useProjectChat } from "@/hooks/useProjectChat";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useDocuments, useExtractedData, useProjectChat } from "@/hooks";
 
 interface ProjectPageProps {
 	params: Promise<{ id: string }>;
@@ -25,30 +28,44 @@ interface ProjectPageProps {
 export default function ProjectPage({ params }: ProjectPageProps) {
 	const { id: projectId } = use(params);
 
-	// Project state - will be replaced with tRPC queries
+	// Project state
 	const [projectName, setProjectName] = useState("New Project");
 	const [activeTab, setActiveTab] = useState<DocumentTabType>("proposal");
 
-	// Mock document data - will be replaced with real data
-	const [documents] = useState({
-		proposal: null as string | null,
-		resource_plan: null as string | null,
-		wbs: null as string | null,
-	});
+	// Hooks
+	const {
+		messages,
+		isLoading,
+		isLoadingHistory,
+		error: chatError,
+		sendMessage,
+	} = useProjectChat({ projectId });
 
-	// Use project chat hook for AI conversation
-	const { messages, isLoading, isLoadingHistory, error, sendMessage } =
-		useProjectChat({ projectId });
+	const { data: extractedData, isLoading: isLoadingExtracted } =
+		useExtractedData({ projectId, pollInterval: 3000 });
+
+	const {
+		documents,
+		isGenerating,
+		generateDocuments,
+		isLoading: isLoadingDocs,
+	} = useDocuments({ projectId });
 
 	// Render document content based on active tab
 	const renderDocumentContent = (tab: DocumentTabType) => {
+		const commonProps = {
+			extractedData,
+			generatedDocuments: documents,
+			isLoading: isLoadingExtracted || isLoadingDocs,
+		};
+
 		switch (tab) {
 			case "proposal":
-				return <ProposalView content={documents.proposal} />;
+				return <ProposalView {...commonProps} />;
 			case "resource_plan":
-				return <ResourceView content={documents.resource_plan} />;
+				return <ResourceView {...commonProps} />;
 			case "wbs":
-				return <WBSView content={documents.wbs} />;
+				return <WBSView {...commonProps} />;
 			default:
 				return null;
 		}
@@ -58,7 +75,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 		<div className="flex h-full flex-col">
 			{/* Project Header */}
 			<ProjectHeader
-				projectName={projectName}
+				projectName={extractedData?.info?.projectName || projectName}
 				status="draft"
 				onNameChange={setProjectName}
 			/>
@@ -67,11 +84,10 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 			<div className="flex flex-1 overflow-hidden">
 				{/* Chat Panel (left side) */}
 				<div className="flex w-1/2 flex-col border-border border-r lg:w-[45%]">
-					{/* Chat messages */}
 					<div className="flex-1 overflow-hidden">
 						{isLoadingHistory ? (
 							<div className="flex h-full items-center justify-center">
-								<div className="text-muted-foreground">
+								<div className="animate-pulse text-muted-foreground">
 									Loading conversation...
 								</div>
 							</div>
@@ -80,7 +96,6 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 						) : (
 							<ChatContainer isLoading={isLoading}>
 								{messages.map((message) => {
-									// Extract text content from message
 									const getContent = () => {
 										if ("parts" in message && message.parts) {
 											return message.parts
@@ -120,14 +135,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 						)}
 					</div>
 
-					{/* Error display */}
-					{error && (
+					{chatError && (
 						<div className="border-destructive border-t bg-destructive/10 px-4 py-2 text-destructive text-sm">
-							Error: {error.message}
+							Error: {chatError.message}
 						</div>
 					)}
 
-					{/* Chat input */}
 					<ChatInput
 						onSend={sendMessage}
 						disabled={isLoading || isLoadingHistory}
@@ -135,10 +148,50 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 				</div>
 
 				{/* Document Panel (right side) */}
-				<div className="flex w-1/2 flex-col lg:w-[55%]">
+				<div className="relative flex w-1/2 flex-col lg:w-[55%]">
+					{/* Generation Trigger Bar */}
+					<div className="absolute top-14 right-4 z-10 flex items-center gap-2">
+						<Button
+							size="sm"
+							variant={documents ? "outline" : "default"}
+							className="h-8 gap-2 shadow-sm"
+							disabled={isGenerating || !extractedData}
+							onClick={generateDocuments}
+						>
+							{isGenerating ? (
+								<Loader2 className="h-3.5 w-3.5 animate-spin" />
+							) : documents ? (
+								<RotateCcw className="h-3.5 w-3.5" />
+							) : (
+								<Sparkles className="h-3.5 w-3.5" />
+							)}
+							{isGenerating
+								? "Generating..."
+								: documents
+									? "Regenerate Docs"
+									: "Generate Final Docs"}
+						</Button>
+					</div>
+
 					<DocumentTabs activeTab={activeTab} onTabChange={setActiveTab}>
 						{renderDocumentContent}
 					</DocumentTabs>
+
+					{/* Simple overlay for generation state */}
+					{isGenerating && (
+						<div className="absolute inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-[1px]">
+							<Card className="w-[300px] border-primary/20 p-6 text-center shadow-xl">
+								<Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
+								<h3 className="mb-1 font-semibold text-lg">
+									AI is composing...
+								</h3>
+								<p className="text-muted-foreground text-xs">
+									Creating professional versions of your proposal, resource
+									plan, and WBS.
+								</p>
+							</Card>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

@@ -25,7 +25,7 @@ export function ChatInput({
 		textarea.style.height = "auto";
 		textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
 		// biome-ignore lint/correctness/useExhaustiveDependencies: resize when value changes
-	}, [value]);
+	}, []);
 
 	const handleSubmit = () => {
 		const trimmed = value.trim();

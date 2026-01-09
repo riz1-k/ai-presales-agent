@@ -14,7 +14,19 @@ import { asc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { AI_CONFIG, getAIModel, type ProjectData, SYSTEM_PROMPTS } from "./ai";
+import {
+	AI_CONFIG,
+	type ExtractedProjectData,
+	extractProjectData,
+	getAIModel,
+	type ProjectData,
+	SYSTEM_PROMPTS,
+} from "./ai";
+import {
+	generateAllDocuments,
+	getLatestSnapshot,
+	saveSnapshot,
+} from "./documents/document-service";
 
 const app = new Hono();
 
@@ -89,19 +101,116 @@ async function loadConversationHistory(
 }
 
 /**
+ * Extract text content from a UI message (handles string content or parts)
+ */
+function getMessageText(message: any): string {
+	if (typeof message.content === "string" && message.content.length > 0) {
+		return message.content;
+	}
+	if (Array.isArray(message.parts)) {
+		return message.parts
+			.map((part: any) => (part.type === "text" ? part.text : ""))
+			.join("");
+	}
+	return "";
+}
+
+/**
  * Save messages to database
  */
 async function saveMessages(
 	projectId: string,
-	messages: Array<{ role: string; content: string }>,
+	messages: Array<{ role: string; content?: string; parts?: any[] }>,
 ) {
 	for (const msg of messages) {
+		const text = getMessageText(msg);
+
+		// Don't save empty messages
+		if (!text) continue;
+
 		await db.insert(conversations).values({
 			id: crypto.randomUUID(),
 			projectId,
 			role: msg.role as "user" | "assistant" | "system",
-			content: msg.content,
+			content: text,
 		});
+	}
+}
+
+/**
+ * Load previously extracted project data from database
+ */
+async function loadExtractedData(
+	projectId: string,
+): Promise<ExtractedProjectData | undefined> {
+	const data = await db.query.projectData.findFirst({
+		where: eq(projectData.projectId, projectId),
+	});
+
+	if (!data || !data.fieldValue) return undefined;
+
+	try {
+		return JSON.parse(data.fieldValue) as ExtractedProjectData;
+	} catch {
+		return undefined;
+	}
+}
+
+/**
+ * Save extracted project data to database
+ */
+async function saveExtractedData(
+	projectId: string,
+	extractedData: ExtractedProjectData,
+): Promise<void> {
+	const existing = await db.query.projectData.findFirst({
+		where: eq(projectData.projectId, projectId),
+	});
+
+	const jsonValue = JSON.stringify(extractedData);
+
+	if (existing) {
+		await db
+			.update(projectData)
+			.set({
+				fieldValue: jsonValue,
+				updatedAt: new Date(),
+			})
+			.where(eq(projectData.id, existing.id));
+	} else {
+		await db.insert(projectData).values({
+			id: crypto.randomUUID(),
+			projectId,
+			fieldName: "extractedData",
+			fieldValue: jsonValue,
+		});
+	}
+}
+
+/**
+ * Run extraction in the background (non-blocking)
+ */
+async function runExtractionBackground(projectId: string): Promise<void> {
+	try {
+		// Load conversation history
+		const history = await loadConversationHistory(projectId);
+		if (history.length === 0) return;
+
+		// Load existing extracted data
+		const existingData = await loadExtractedData(projectId);
+
+		// Run extraction
+		const result = await extractProjectData(history, existingData);
+
+		if (result.success && result.changedFields.length > 0) {
+			// Save updated data
+			await saveExtractedData(projectId, result.updatedData);
+			console.log(
+				`[Extraction] Project ${projectId}: Updated fields: ${result.changedFields.join(", ")}`,
+			);
+		}
+	} catch (error) {
+		console.error(`[Extraction] Failed for project ${projectId}:`, error);
 	}
 }
 
@@ -127,9 +236,7 @@ app.post("/ai", async (c) => {
 			.filter((m: { role: string }) => m.role === "user")
 			.pop();
 		if (lastUserMessage) {
-			await saveMessages(projectId, [
-				{ role: "user", content: lastUserMessage.content },
-			]);
+			await saveMessages(projectId, [lastUserMessage]);
 		}
 	}
 
@@ -143,6 +250,12 @@ app.post("/ai", async (c) => {
 			// Save assistant response to database if project-scoped
 			if (projectId && text) {
 				await saveMessages(projectId, [{ role: "assistant", content: text }]);
+
+				// Run extraction in the background (non-blocking)
+				// We don't await this to avoid blocking the response
+				runExtractionBackground(projectId).catch((err) => {
+					console.error("[Extraction] Background error:", err);
+				});
 			}
 		},
 	});
@@ -157,6 +270,55 @@ app.get("/ai/history/:projectId", async (c) => {
 	const projectId = c.req.param("projectId");
 	const history = await loadConversationHistory(projectId);
 	return c.json({ messages: history });
+});
+
+/**
+ * Get extracted project data
+ */
+app.get("/ai/extracted/:projectId", async (c) => {
+	const projectId = c.req.param("projectId");
+	const extractedData = await loadExtractedData(projectId);
+	return c.json({ data: extractedData || null });
+});
+
+/**
+ * Manually trigger extraction for a project
+ */
+app.post("/ai/extract/:projectId", async (c) => {
+	const projectId = c.req.param("projectId");
+	await runExtractionBackground(projectId);
+	const extractedData = await loadExtractedData(projectId);
+	return c.json({ data: extractedData || null });
+});
+
+/**
+ * Trigger full document generation for a project
+ */
+app.post("/ai/generate-docs/:projectId", async (c) => {
+	const projectId = c.req.param("projectId");
+	const extractedData = await loadExtractedData(projectId);
+
+	if (!extractedData) {
+		return c.json({ error: "No extracted data found" }, 404);
+	}
+
+	try {
+		const documents = await generateAllDocuments(projectId, extractedData);
+		await saveSnapshot(projectId, documents);
+		return c.json({ documents });
+	} catch (error) {
+		console.error("[Documents] Generation failed:", error);
+		return c.json({ error: "Failed to generate documents" }, 500);
+	}
+});
+
+/**
+ * Get the latest snapshots for a project
+ */
+app.get("/ai/snapshots/latest/:projectId", async (c) => {
+	const projectId = c.req.param("projectId");
+	const snapshots = await getLatestSnapshot(projectId);
+	return c.json({ documents: snapshots });
 });
 
 app.get("/", (c) => {

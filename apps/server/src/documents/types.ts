@@ -1,0 +1,40 @@
+export interface DocumentSection {
+	id: string;
+	title: string;
+	content: string;
+	isAIGenerated: boolean;
+	lastEdited?: Date;
+}
+
+export interface ProposalDocument {
+	title: string;
+	generatedAt: Date;
+	sections: DocumentSection[];
+}
+
+export interface ResourceDocument {
+	title: string;
+	generatedAt: Date;
+	summary: string;
+	totalHours: number;
+}
+
+export interface WBSTask {
+	id: string;
+	name: string;
+	description?: string;
+	estimatedHours: number;
+	priority?: "high" | "medium" | "low";
+}
+
+export interface WBSPhase {
+	id: string;
+	name: string;
+	tasks: WBSTask[];
+}
+
+export interface WBSDocument {
+	title: string;
+	generatedAt: Date;
+	phases: WBSPhase[];
+}
