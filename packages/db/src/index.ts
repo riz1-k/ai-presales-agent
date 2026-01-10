@@ -9,3 +9,6 @@ const client = createClient({
 });
 
 export const db = drizzle({ client, schema });
+
+// Re-export all schema tables and relations
+export * from "./schema";
