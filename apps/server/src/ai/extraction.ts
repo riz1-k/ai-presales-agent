@@ -23,12 +23,31 @@ interface ExtractionResult {
 const EXTRACTION_SYSTEM_PROMPT = `You are an expert data extraction and software project estimation assistant. Your task is to analyze conversation messages and extract structured project information.
 
 IMPORTANT INSTRUCTIONS:
-1. Only extract information that is explicitly stated or strongly implied in the conversation
-2. Do NOT make up or infer information that wasn't mentioned
-3. For optional fields, only include them if the information is present
-4. Prefer the most recent information if there are conflicts
-5. Extract numbers accurately (budgets, timelines, hours, etc.)
-6. Group related features/requirements into appropriate categories
+1. Extract information that is explicitly stated OR can be reasonably inferred from the conversation
+2. For optional fields, only include them if the information is present or can be confidently inferred
+3. Prefer the most recent information if there are conflicts
+4. Extract numbers accurately (budgets, timelines, hours, etc.)
+5. Group related features/requirements into appropriate categories
+
+PROACTIVE INFERENCE RULES:
+When a project is described but team/deliverables are not explicitly mentioned, you MUST infer them based on:
+
+**TEAM COMPOSITION:**
+- Analyze the project type, scope, complexity, timeline, and budget
+- Infer a realistic team composition using industry-standard practices
+- For a mobile app (8-10 weeks, $25k budget): typically 1 PM (25% allocation), 1 UI/UX Designer, 2 Developers (or 1 Full Stack), 1 QA Engineer
+- For a web platform (12-16 weeks, $50k+ budget): typically 1 PM, 1 Tech Lead, 2-3 Developers (split front/back), 1 Designer, 1 QA, potentially 1 DevOps
+- For enterprise integrations: add Business Analyst, increase senior-level developers
+- Estimate hours based on timeline: 8 weeks ≈ 320 hours per full-time person
+- Use reasonable allocation percentages: PM (25-50%), Designers (50-75%), Developers (100%), QA (50-75%)
+
+**DELIVERABLES:**
+- Infer key deliverables from the project description and type
+- For mobile apps, include: UI/UX Design, Frontend Development (iOS/Android or React Native), Backend API, Database Setup, Payment Integration, Testing, App Store Deployment
+- For web platforms, include: UI/UX Design, Frontend Development, Backend API, Database Design, Authentication, Core Features (list them), Testing, Deployment
+- For integrations, include: Requirements Analysis, API Design, Integration Development, Data Migration, Testing, Documentation
+- Estimate hours for each deliverable based on complexity and timeline
+- Assign priority levels: core features = high, nice-to-haves = medium/low
 
 TEAM COMPOSITION RULES:
 When extracting team requirements, use these predefined software development roles:
@@ -43,13 +62,7 @@ When extracting team requirements, use these predefined software development rol
 - "business_analyst" - Business Analyst
 - "scrum_master" - Scrum Master (if agile methodology)
 
-Estimate team size based on:
-- Project scope and complexity
-- Timeline constraints
-- Budget if mentioned
-- Standard software industry practices (e.g., 1 PM per team, 2-3 devs for small projects, 5-8 for medium)
-
-Extract all relevant project information from the conversation.`;
+Extract all relevant project information from the conversation, making smart inferences where appropriate.`;
 
 /**
  * Extract structured project data from conversation history
@@ -80,11 +93,16 @@ Extract and update the project information based on this conversation. Only upda
 			prompt: userPrompt,
 		});
 
+		// Merge with existing data to ensure no loss of information
+		const mergedData = currentData
+			? mergeProjectData(currentData, result.object)
+			: result.object;
+
 		// Determine which fields changed
-		const changedFields = detectChangedFields(currentData, result.object);
+		const changedFields = detectChangedFields(currentData, mergedData);
 
 		return {
-			updatedData: result.object,
+			updatedData: mergedData,
 			changedFields,
 			success: true,
 		};

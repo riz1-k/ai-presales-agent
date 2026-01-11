@@ -31,8 +31,8 @@ export async function generateWBS(
 			),
 		}),
 		system:
-			"You are a project manager. Organize the provided deliverables into logical project phases (e.g., Discovery, Design, Development, Testing, Deployment). Assign realistic estimated hours to each task.",
-		prompt: `Project: ${data.info?.projectName}\nDeliverables: ${JSON.stringify(data.deliverables)}\nTechnical: ${JSON.stringify(data.technical)}\n\nCreate a logical phase-based breakdown.`,
+			"You are a professional Project Manager and Solutions Architect. Your task is to create a comprehensive Work Breakdown Structure (WBS) for a software project. Organize the project into 4-6 logical phases (e.g., Discovery & Requirements, UI/UX Design, Development Sprints, QA & Testing, Deployment & Launch). For each phase, provide 3-5 detailed tasks with realistic hourly estimates. Base your breakdown on the project description, objectives, and technical requirements provided.",
+		prompt: `Project Name: ${data.info?.projectName}\nDescription: ${data.info?.projectDescription}\nObjectives: ${JSON.stringify(data.info?.objectives)}\nTechnical Requirements: ${JSON.stringify(data.technical)}\nTimeline: ${data.timelineBudget?.durationWeeks} weeks\nInitial Deliverables: ${JSON.stringify(data.deliverables)}\n\nCreate a professional, detailed WBS.`,
 	});
 
 	return {

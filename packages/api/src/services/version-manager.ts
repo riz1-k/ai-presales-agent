@@ -2,8 +2,8 @@ import {
 	db,
 	projectChangelog,
 	projectData,
-	projectVersions,
 	projects,
+	projectVersions,
 } from "@ai-presales-agent/db";
 import { desc, eq } from "drizzle-orm";
 

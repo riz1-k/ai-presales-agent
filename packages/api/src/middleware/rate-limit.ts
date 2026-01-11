@@ -37,7 +37,10 @@ class RateLimiter {
 	/**
 	 * Check if request should be rate limited
 	 */
-	check(key: string, config: RateLimitConfig): {
+	check(
+		key: string,
+		config: RateLimitConfig,
+	): {
 		allowed: boolean;
 		remaining: number;
 		resetTime: number;
@@ -146,10 +149,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
 /**
  * Rate limit by IP address (for public endpoints)
  */
-export function rateLimitByIP(
-	ip: string,
-	config: RateLimitConfig,
-): void {
+export function rateLimitByIP(ip: string, config: RateLimitConfig): void {
 	const key = `rate-limit:ip:${ip}`;
 	const result = rateLimiter.check(key, config);
 

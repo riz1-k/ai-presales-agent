@@ -72,7 +72,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 	};
 
 	return (
-		<div className="flex h-full flex-col">
+		<div className="flex h-full flex-col bg-muted/20">
 			{/* Project Header */}
 			<ProjectHeader
 				projectName={extractedData?.info?.projectName || projectName}
@@ -81,14 +81,25 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 			/>
 
 			{/* Main content - split view */}
-			<div className="flex flex-1 overflow-hidden">
+			<div className="flex flex-1 gap-0 overflow-hidden p-0">
 				{/* Chat Panel (left side) */}
-				<div className="flex w-1/2 flex-col border-border border-r lg:w-[45%]">
+				<div className="flex w-1/2 flex-col border-border border-r bg-background lg:w-[45%]">
+					{/* Panel Header */}
+					<div className="flex items-center border-border border-b bg-muted/30 px-4 py-3">
+						<div className="flex items-center gap-2">
+							<div className="h-2 w-2 animate-pulse rounded-full bg-primary" />
+							<span className="font-semibold text-foreground/80 text-sm uppercase lowercase tracking-tight">
+								Project Intelligence
+							</span>
+						</div>
+					</div>
+
 					<div className="flex-1 overflow-hidden">
 						{isLoadingHistory ? (
-							<div className="flex h-full items-center justify-center">
-								<div className="animate-pulse text-muted-foreground">
-									Loading conversation...
+							<div className="flex h-full flex-col items-center justify-center p-8 text-center">
+								<Loader2 className="mb-4 h-12 w-12 animate-spin text-primary/20" />
+								<div className="animate-pulse font-medium text-muted-foreground">
+									Syncing with AI Agent...
 								</div>
 							</div>
 						) : messages.length === 0 ? (
@@ -96,22 +107,15 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 						) : (
 							<ChatContainer isLoading={isLoading}>
 								{messages.map((message) => {
-									const getContent = () => {
-										if ("parts" in message && message.parts) {
-											return message.parts
-												.map((part) => (part.type === "text" ? part.text : ""))
-												.join("");
-										}
-										if (
-											"content" in message &&
-											typeof message.content === "string"
-										) {
-											return message.content;
-										}
-										return "";
-									};
-
-									const content = getContent();
+									const content =
+										"parts" in message && message.parts
+											? message.parts
+													.map((p) => (p.type === "text" ? p.text : ""))
+													.join("")
+											: "content" in message &&
+													typeof message.content === "string"
+												? message.content
+												: "";
 
 									return (
 										<ChatMessage
@@ -136,8 +140,9 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 					</div>
 
 					{chatError && (
-						<div className="border-destructive border-t bg-destructive/10 px-4 py-2 text-destructive text-sm">
-							Error: {chatError.message}
+						<div className="border-destructive/20 border-t bg-destructive/5 px-4 py-2 text-destructive text-xs">
+							<span className="font-semibold">Connection Error:</span>{" "}
+							{chatError.message}
 						</div>
 					)}
 
@@ -149,31 +154,32 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
 				{/* Document Panel (right side) */}
 				<div className="relative flex w-1/2 flex-col lg:w-[55%]">
-					{/* Generation Trigger Bar */}
-					<div className="absolute top-14 right-4 z-10 flex items-center gap-2">
-						<Button
-							size="sm"
-							variant={documents ? "outline" : "default"}
-							className="h-8 gap-2 shadow-sm"
-							disabled={isGenerating || !extractedData}
-							onClick={generateDocuments}
-						>
-							{isGenerating ? (
-								<Loader2 className="h-3.5 w-3.5 animate-spin" />
-							) : documents ? (
-								<RotateCcw className="h-3.5 w-3.5" />
-							) : (
-								<Sparkles className="h-3.5 w-3.5" />
-							)}
-							{isGenerating
-								? "Generating..."
-								: documents
-									? "Regenerate Docs"
-									: "Generate Final Docs"}
-						</Button>
-					</div>
-
-					<DocumentTabs activeTab={activeTab} onTabChange={setActiveTab}>
+					<DocumentTabs
+						activeTab={activeTab}
+						onTabChange={setActiveTab}
+						actions={
+							<Button
+								size="sm"
+								variant={documents ? "outline" : "default"}
+								className="h-8 gap-2 shadow-sm"
+								disabled={isGenerating || !extractedData}
+								onClick={generateDocuments}
+							>
+								{isGenerating ? (
+									<Loader2 className="h-3.5 w-3.5 animate-spin" />
+								) : documents ? (
+									<RotateCcw className="h-3.5 w-3.5" />
+								) : (
+									<Sparkles className="h-3.5 w-3.5" />
+								)}
+								{isGenerating
+									? "Generating..."
+									: documents
+										? "Regenerate Docs"
+										: "Generate Final Docs"}
+							</Button>
+						}
+					>
 						{renderDocumentContent}
 					</DocumentTabs>
 

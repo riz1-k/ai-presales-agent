@@ -61,14 +61,14 @@ export function ProjectHeader({
 	const statusInfo = statusConfig[status];
 
 	return (
-		<div className="flex items-center justify-between border-border border-b bg-background px-4 py-3">
-			<div className="flex items-center gap-3">
+		<div className="flex items-center justify-between border-border border-b bg-background px-6 py-4 shadow-sm">
+			<div className="flex items-center gap-4">
 				{isEditing ? (
 					<div className="flex items-center gap-2">
 						<Input
 							value={editValue}
 							onChange={(e) => setEditValue(e.target.value)}
-							className="h-8 w-64"
+							className="h-9 w-72 rounded-lg"
 							autoFocus
 							onKeyDown={(e) => {
 								if (e.key === "Enter") handleSave();
@@ -78,7 +78,7 @@ export function ProjectHeader({
 						<Button
 							size="icon"
 							variant="ghost"
-							className="h-8 w-8"
+							className="h-9 w-9"
 							onClick={handleSave}
 						>
 							<Check className="h-4 w-4" />
@@ -86,7 +86,7 @@ export function ProjectHeader({
 						<Button
 							size="icon"
 							variant="ghost"
-							className="h-8 w-8"
+							className="h-9 w-9 text-muted-foreground hover:text-destructive"
 							onClick={handleCancel}
 						>
 							<X className="h-4 w-4" />
@@ -94,27 +94,30 @@ export function ProjectHeader({
 					</div>
 				) : (
 					<>
-						<h1 className="font-semibold text-lg">{projectName}</h1>
+						<h1 className="font-bold text-xl tracking-tight">{projectName}</h1>
 						{isEditable && (
 							<Button
 								size="icon"
 								variant="ghost"
-								className="h-8 w-8"
+								className="h-8 w-8 text-muted-foreground opacity-0 transition-opacity hover:opacity-100 group-hover:opacity-100"
 								onClick={() => setIsEditing(true)}
 							>
-								<Edit2 className="h-4 w-4" />
+								<Edit2 className="h-3.5 w-3.5" />
 							</Button>
 						)}
 					</>
 				)}
 			</div>
 
-			{/* Status badge */}
-			<span
-				className={`rounded-full px-3 py-1 font-medium text-xs ${statusInfo.className}`}
-			>
-				{statusInfo.label}
-			</span>
+			<div className="flex items-center gap-4">
+				{/* Status badge */}
+				<span
+					className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-semibold text-xs transition-colors ${statusInfo.className}`}
+				>
+					<span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+					{statusInfo.label}
+				</span>
+			</div>
 		</div>
 	);
 }

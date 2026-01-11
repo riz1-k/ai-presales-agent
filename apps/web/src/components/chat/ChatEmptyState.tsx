@@ -16,41 +16,53 @@ const suggestions = [
 
 export function ChatEmptyState({ onSuggestionClick }: ChatEmptyStateProps) {
 	return (
-		<div className="flex h-full flex-col items-center justify-center px-6 py-12">
-			{/* Icon */}
-			<div className="relative mb-6">
-				<div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-chart-1 to-chart-3 shadow-lg">
-					<MessageSquarePlus className="h-10 w-10 text-white" />
+		<div className="flex h-full flex-col items-center justify-center bg-gradient-to-b from-background to-muted/20 px-6 py-12">
+			{/* Brand / Logo */}
+			<div className="group relative mb-8 transition-all hover:scale-105">
+				<div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-primary to-chart-3 shadow-2xl ring-4 ring-background">
+					<MessageSquarePlus className="h-12 w-12 text-white transition-transform group-hover:rotate-12" />
 				</div>
-				<div className="absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md">
-					<Sparkles className="h-4 w-4" />
+				<div className="absolute -top-3 -right-3 flex h-10 w-10 animate-bounce items-center justify-center rounded-full bg-chart-1 text-white shadow-lg ring-2 ring-background">
+					<Sparkles className="h-5 w-5" />
 				</div>
 			</div>
 
-			{/* Title */}
-			<h2 className="mb-2 font-semibold text-2xl">
-				Welcome to AI Presales Agent
-			</h2>
-			<p className="mb-8 max-w-md text-center text-muted-foreground">
-				I'll help you scope projects, create proposals, and estimate resources.
-				Start by telling me about your project needs.
-			</p>
-
-			{/* Suggestions */}
-			<div className="w-full max-w-lg space-y-3">
-				<p className="text-center font-medium text-muted-foreground text-sm">
-					Try one of these to get started:
+			{/* Title & Description */}
+			<div className="mb-12 max-w-md text-center">
+				<h2 className="mb-3 font-bold text-3xl tracking-tight lg:text-4xl">
+					How can I help you today?
+				</h2>
+				<p className="text-lg text-muted-foreground leading-relaxed">
+					I'll help you scope projects, generate proposals, and estimate
+					resources with AI accuracy.
 				</p>
-				<div className="grid gap-2">
+			</div>
+
+			{/* Suggestions Grid */}
+			<div className="w-full max-w-2xl">
+				<p className="mb-4 text-center font-medium text-muted-foreground text-sm uppercase tracking-widest">
+					Get Started Fast
+				</p>
+				<div className="grid gap-4 sm:grid-cols-2">
 					{suggestions.map((suggestion) => (
-						<Button
+						<button
 							key={suggestion}
-							variant="outline"
-							className="h-auto justify-start whitespace-normal px-4 py-3 text-left text-sm hover:bg-secondary"
+							type="button"
+							className="group relative flex h-full flex-col items-start justify-between rounded-2xl border border-border bg-card p-5 text-left transition-all hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl dark:hover:bg-muted/30"
 							onClick={() => onSuggestionClick?.(suggestion)}
 						>
-							<span className="line-clamp-2">{suggestion}</span>
-						</Button>
+							<div className="mb-8 flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+								<Sparkles className="h-4 w-4" />
+							</div>
+							<p className="font-medium text-foreground transition-colors group-hover:text-primary">
+								{suggestion}
+							</p>
+							<div className="absolute right-4 bottom-4 opacity-0 transition-opacity group-hover:opacity-100">
+								<div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+									<MessageSquarePlus className="h-3 w-3" />
+								</div>
+							</div>
+						</button>
 					))}
 				</div>
 			</div>

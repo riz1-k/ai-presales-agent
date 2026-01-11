@@ -1,5 +1,10 @@
-import { generateText } from "ai";
-import { type ExtractedProjectData, getAIModel } from "../../ai";
+import { generateObject, generateText } from "ai";
+import { z } from "zod";
+import {
+	type ExtractedProjectData,
+	getAIModel,
+	TeamMemberSchema,
+} from "../../ai";
 import type { ResourceDocument, ResourceTeamMember } from "../types";
 
 /**
@@ -27,8 +32,30 @@ export async function generateResourcePlan(
 ): Promise<ResourceDocument> {
 	const model = getAIModel();
 
+	let teamData = data.team || [];
+
+	// AI Fallback: If team is empty or very small, have AI recommend a full team
+	if (teamData.length < 2) {
+		const recommendation = await generateObject({
+			model,
+			schema: z.object({
+				recommendedTeam: z.array(TeamMemberSchema),
+			}),
+			system:
+				"You are an expert project resource manager. Recommend an optimal team composition for this software project based on the scope, deliverables, and timeline. Ensure a balanced team (PM, Design, Dev, QA) that fits the budget and duration.",
+			prompt: `Project: ${data.info?.projectName}\nDescription: ${data.info?.projectDescription}\nTimeline: ${data.timelineBudget?.durationWeeks} weeks\nBudget: ${data.timelineBudget?.budgetMin} - ${data.timelineBudget?.budgetMax}\nDeliverables: ${JSON.stringify(data.deliverables)}\nExisting Team: ${JSON.stringify(teamData)}\n\nRecommend a full team composition. If an existing team is provided, complement it with missing roles.`,
+		});
+
+		// Merge recommended team with existing: keep existing roles, add new ones from recommendation
+		const existingRoles = new Set(teamData.map((m) => m.role));
+		const newMembers = recommendation.object.recommendedTeam.filter(
+			(m) => !existingRoles.has(m.role),
+		);
+		teamData = [...teamData, ...newMembers];
+	}
+
 	// Transform team data to resource format
-	const team: ResourceTeamMember[] = (data.team || []).map((member) => ({
+	const team: ResourceTeamMember[] = teamData.map((member) => ({
 		role: member.role,
 		roleLabel: member.roleLabel || ROLE_LABELS[member.role] || member.role,
 		count: member.count || 1,
@@ -49,7 +76,7 @@ export async function generateResourcePlan(
 		0,
 	);
 	const estimatedCost = team.reduce(
-		(sum, m) => sum + (m.estimatedCost || 0) * m.count,
+		(sum, m) => sum + (m.estimatedCost || 0) * (m.count || 1),
 		0,
 	);
 

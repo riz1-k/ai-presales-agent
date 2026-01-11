@@ -1,1 +1,1 @@
-export { trpc, queryClient } from "@/utils/trpc";
+export { queryClient, trpc } from "@/utils/trpc";

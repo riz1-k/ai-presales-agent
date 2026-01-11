@@ -258,9 +258,7 @@ export const projectsRouter = router({
 				where: eq(projectData.projectId, input.projectId),
 			});
 
-			const existingMap = new Map(
-				existingData.map((d) => [d.fieldName, d]),
-			);
+			const existingMap = new Map(existingData.map((d) => [d.fieldName, d]));
 
 			// Process each change
 			const { versionManager } = await import("../services/version-manager");

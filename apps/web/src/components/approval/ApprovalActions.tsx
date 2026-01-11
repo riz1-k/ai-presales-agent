@@ -1,5 +1,9 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
+import { CheckCircle2, Loader2, MessageSquare, XCircle } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -9,14 +13,10 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { useMutation } from "@tanstack/react-query";
-import { CheckCircle2, Loader2, MessageSquare, XCircle } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 interface ApprovalActionsProps {
 	projectId: string;
@@ -127,10 +127,7 @@ export function ApprovalActions({
 	return (
 		<>
 			<div className="flex items-center gap-2">
-				<Button
-					variant="outline"
-					onClick={() => setShowChangesDialog(true)}
-				>
+				<Button variant="outline" onClick={() => setShowChangesDialog(true)}>
 					<MessageSquare className="mr-2 h-4 w-4" />
 					Request Changes
 				</Button>

@@ -3,7 +3,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 /**
  * Hook to measure component render performance
  */
-export function useRenderPerformance(componentName: string, enabled = process.env.NODE_ENV === "development") {
+export function useRenderPerformance(
+	componentName: string,
+	enabled = process.env.NODE_ENV === "development",
+) {
 	const renderCount = useRef(0);
 	const lastRenderTime = useRef(performance.now());
 
@@ -25,7 +28,10 @@ export function useRenderPerformance(componentName: string, enabled = process.en
 /**
  * Hook to detect unnecessary re-renders
  */
-export function useWhyDidYouUpdate(name: string, props: Record<string, unknown>) {
+export function useWhyDidYouUpdate(
+	name: string,
+	props: Record<string, unknown>,
+) {
 	const previousProps = useRef<Record<string, unknown>>(null);
 
 	useEffect(() => {
@@ -90,4 +96,3 @@ export function useThrottle<T extends (...args: unknown[]) => unknown>(
 		[callback, delay],
 	) as T;
 }
-

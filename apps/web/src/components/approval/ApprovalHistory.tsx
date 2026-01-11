@@ -1,8 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { trpc } from "@/lib/trpc";
 import { useQuery } from "@tanstack/react-query";
 import {
 	CheckCircle2,
@@ -11,6 +8,9 @@ import {
 	MessageSquare,
 	XCircle,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { trpc } from "@/lib/trpc";
 
 interface ApprovalHistoryProps {
 	projectId: string;
@@ -33,8 +33,8 @@ export function ApprovalHistory({ projectId }: ApprovalHistoryProps) {
 
 	if (!history || history.length === 0) {
 		return (
-			<div className="text-center py-8 text-muted-foreground">
-				<Clock className="mx-auto h-12 w-12 mb-2 opacity-50" />
+			<div className="py-8 text-center text-muted-foreground">
+				<Clock className="mx-auto mb-2 h-12 w-12 opacity-50" />
 				<p>No approval history yet</p>
 			</div>
 		);
@@ -56,7 +56,13 @@ export function ApprovalHistory({ projectId }: ApprovalHistoryProps) {
 	};
 
 	const getStatusBadge = (status: string) => {
-		const variants: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+		const variants: Record<
+			string,
+			{
+				label: string;
+				variant: "default" | "secondary" | "destructive" | "outline";
+			}
+		> = {
 			approved: { label: "Approved", variant: "default" },
 			rejected: { label: "Rejected", variant: "destructive" },
 			changes_requested: { label: "Changes Requested", variant: "outline" },
@@ -79,16 +85,16 @@ export function ApprovalHistory({ projectId }: ApprovalHistoryProps) {
 
 	return (
 		<div className="space-y-4">
-			<h3 className="text-lg font-semibold">Approval History</h3>
+			<h3 className="font-semibold text-lg">Approval History</h3>
 
 			<div className="relative space-y-4">
 				{/* Timeline line */}
-				<div className="absolute left-[18px] top-2 bottom-2 w-0.5 bg-border" />
+				<div className="absolute top-2 bottom-2 left-[18px] w-0.5 bg-border" />
 
 				{history.map((approval, index) => (
-					<Card key={approval.id} className="relative pl-12 p-4">
+					<Card key={approval.id} className="relative p-4 pl-12">
 						{/* Timeline dot */}
-						<div className="absolute left-3 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-background">
+						<div className="absolute top-4 left-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-background">
 							{getStatusIcon(approval.status)}
 						</div>
 
@@ -97,14 +103,14 @@ export function ApprovalHistory({ projectId }: ApprovalHistoryProps) {
 								<div>
 									<div className="flex items-center gap-2">
 										{getStatusBadge(approval.status)}
-										<span className="text-sm text-muted-foreground">
+										<span className="text-muted-foreground text-sm">
 											{formatDate(approval.createdAt)}
 										</span>
 									</div>
-									<p className="mt-1 text-sm font-medium">
+									<p className="mt-1 font-medium text-sm">
 										{approval.approver?.name || "Unknown"}
 									</p>
-									<p className="text-xs text-muted-foreground">
+									<p className="text-muted-foreground text-xs">
 										{approval.approver?.email}
 									</p>
 								</div>
@@ -119,16 +125,18 @@ export function ApprovalHistory({ projectId }: ApprovalHistoryProps) {
 							{approval.requestedChanges &&
 								approval.requestedChanges.length > 0 && (
 									<div className="rounded-md border border-orange-200 bg-orange-50 p-3">
-										<p className="text-sm font-medium text-orange-900 mb-2">
+										<p className="mb-2 font-medium text-orange-900 text-sm">
 											Requested Changes:
 										</p>
-										<ul className="space-y-1 text-sm text-orange-700">
-											{approval.requestedChanges.map((change: string, i: number) => (
-												<li key={i} className="flex items-start gap-2">
-													<span className="text-orange-500 mt-0.5">•</span>
-													<span>{change}</span>
-												</li>
-											))}
+										<ul className="space-y-1 text-orange-700 text-sm">
+											{approval.requestedChanges.map(
+												(change: string, i: number) => (
+													<li key={i} className="flex items-start gap-2">
+														<span className="mt-0.5 text-orange-500">•</span>
+														<span>{change}</span>
+													</li>
+												),
+											)}
 										</ul>
 									</div>
 								)}
@@ -136,7 +144,7 @@ export function ApprovalHistory({ projectId }: ApprovalHistoryProps) {
 							{approval.updatedAt &&
 								new Date(approval.updatedAt).getTime() !==
 									new Date(approval.createdAt).getTime() && (
-									<p className="text-xs text-muted-foreground">
+									<p className="text-muted-foreground text-xs">
 										Updated: {formatDate(approval.updatedAt)}
 									</p>
 								)}

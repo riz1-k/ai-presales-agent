@@ -1,8 +1,8 @@
 "use client";
 
+import { Bot, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Bot, RefreshCw } from "lucide-react";
 
 interface AIErrorProps {
 	error: Error;
@@ -11,7 +11,8 @@ interface AIErrorProps {
 }
 
 export function AIError({ error, onRetry, onManualInput }: AIErrorProps) {
-	const isRetryable = error.message.includes("timeout") ||
+	const isRetryable =
+		error.message.includes("timeout") ||
 		error.message.includes("network") ||
 		error.message.includes("temporarily");
 
@@ -23,7 +24,7 @@ export function AIError({ error, onRetry, onManualInput }: AIErrorProps) {
 				</div>
 				<div className="flex-1">
 					<h3 className="font-medium text-red-900">AI Service Error</h3>
-					<p className="mt-1 text-sm text-red-700">
+					<p className="mt-1 text-red-700 text-sm">
 						{isRetryable
 							? "The AI service is temporarily unavailable. Please try again in a moment."
 							: "An error occurred while processing your request. You can try again or enter the information manually."}
@@ -31,10 +32,10 @@ export function AIError({ error, onRetry, onManualInput }: AIErrorProps) {
 
 					{process.env.NODE_ENV === "development" && (
 						<details className="mt-2">
-							<summary className="cursor-pointer text-xs text-red-600">
+							<summary className="cursor-pointer text-red-600 text-xs">
 								Error Details
 							</summary>
-							<pre className="mt-1 overflow-auto text-xs text-red-600">
+							<pre className="mt-1 overflow-auto text-red-600 text-xs">
 								{error.message}
 							</pre>
 						</details>

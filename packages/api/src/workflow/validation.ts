@@ -1,6 +1,6 @@
-import type { ValidationResult } from "./schemas";
 import { db, projectData } from "@ai-presales-agent/db";
 import { eq } from "drizzle-orm";
+import type { ValidationResult } from "./schemas";
 
 /**
  * Validate if a project is ready for approval submission

@@ -1,8 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { trpc } from "@/lib/trpc";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Copy,
 	FileText,
@@ -16,12 +14,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
 	AlertDialog,
 	AlertDialogAction,
 	AlertDialogCancel,
@@ -31,7 +23,15 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { trpc } from "@/lib/trpc";
 
 export default function ProjectsPage() {
 	const router = useRouter();
@@ -39,7 +39,9 @@ export default function ProjectsPage() {
 	const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
 
 	const queryClient = useQueryClient();
-	const { data: projects, isLoading } = useQuery(trpc.projects.list.queryOptions());
+	const { data: projects, isLoading } = useQuery(
+		trpc.projects.list.queryOptions(),
+	);
 	const createProject = useMutation(
 		trpc.projects.create.mutationOptions({
 			onSuccess: (data) => {
@@ -51,14 +53,18 @@ export default function ProjectsPage() {
 		trpc.projects.duplicate.mutationOptions({
 			onSuccess: () => {
 				// Refetch projects list
-				queryClient.invalidateQueries({ queryKey: trpc.projects.list.queryKey() });
+				queryClient.invalidateQueries({
+					queryKey: trpc.projects.list.queryKey(),
+				});
 			},
 		}),
 	);
 	const deleteProject = useMutation(
 		trpc.projects.delete.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries({ queryKey: trpc.projects.list.queryKey() });
+				queryClient.invalidateQueries({
+					queryKey: trpc.projects.list.queryKey(),
+				});
 				setDeleteProjectId(null);
 			},
 		}),
@@ -118,12 +124,15 @@ export default function ProjectsPage() {
 		<div className="container mx-auto max-w-7xl px-4 py-8">
 			<div className="mb-8 flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold">Projects</h1>
+					<h1 className="font-bold text-3xl">Projects</h1>
 					<p className="mt-2 text-muted-foreground">
 						Manage your presales projects
 					</p>
 				</div>
-				<Button onClick={handleCreateProject} disabled={createProject.isPending}>
+				<Button
+					onClick={handleCreateProject}
+					disabled={createProject.isPending}
+				>
 					{createProject.isPending ? (
 						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 					) : (
@@ -135,7 +144,7 @@ export default function ProjectsPage() {
 
 			<div className="mb-6">
 				<div className="relative">
-					<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+					<Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						placeholder="Search projects..."
 						value={searchQuery}
@@ -170,7 +179,7 @@ export default function ProjectsPage() {
 										<h3 className="font-semibold group-hover:text-primary">
 											{project.projectName}
 										</h3>
-										<p className="text-xs text-muted-foreground">
+										<p className="text-muted-foreground text-xs">
 											{formatDate(project.updatedAt)}
 										</p>
 									</div>
@@ -216,7 +225,7 @@ export default function ProjectsPage() {
 
 							<div className="mt-4">
 								<span
-									className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(project.status)}`}
+									className={`inline-block rounded-full px-2.5 py-0.5 font-medium text-xs ${getStatusColor(project.status)}`}
 								>
 									{formatStatus(project.status)}
 								</span>
@@ -227,8 +236,8 @@ export default function ProjectsPage() {
 			) : (
 				<div className="flex h-64 flex-col items-center justify-center text-center">
 					<FileText className="mb-4 h-12 w-12 text-muted-foreground" />
-					<h3 className="mb-2 text-lg font-semibold">No projects found</h3>
-					<p className="mb-4 text-sm text-muted-foreground">
+					<h3 className="mb-2 font-semibold text-lg">No projects found</h3>
+					<p className="mb-4 text-muted-foreground text-sm">
 						{searchQuery
 							? "Try a different search term"
 							: "Get started by creating your first project"}
@@ -250,8 +259,8 @@ export default function ProjectsPage() {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Project</AlertDialogTitle>
 						<AlertDialogDescription>
-							Are you sure you want to delete this project? This action cannot be
-							undone.
+							Are you sure you want to delete this project? This action cannot
+							be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

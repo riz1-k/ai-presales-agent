@@ -3,10 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { protectedProcedure, router } from "../index";
-import {
-	ProjectStatusSchema,
-	canTransition,
-} from "../workflow/schemas";
+import { canTransition, ProjectStatusSchema } from "../workflow/schemas";
 import {
 	validateForApproval,
 	validateForFinalization,

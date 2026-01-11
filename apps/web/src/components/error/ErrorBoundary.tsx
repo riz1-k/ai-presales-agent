@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
 import { Component, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface Props {
 	children: ReactNode;
@@ -60,21 +60,21 @@ export class ErrorBoundary extends Component<Props, State> {
 								<AlertCircle className="h-6 w-6 text-red-600" />
 							</div>
 
-							<h2 className="mb-2 text-xl font-semibold">
+							<h2 className="mb-2 font-semibold text-xl">
 								Something went wrong
 							</h2>
 
-							<p className="mb-4 text-sm text-muted-foreground">
+							<p className="mb-4 text-muted-foreground text-sm">
 								We're sorry, but something unexpected happened. Please try
 								refreshing the page or going back to the home page.
 							</p>
 
 							{process.env.NODE_ENV === "development" && this.state.error && (
 								<details className="mb-4 w-full rounded-md bg-red-50 p-3 text-left">
-									<summary className="cursor-pointer text-sm font-medium text-red-900">
+									<summary className="cursor-pointer font-medium text-red-900 text-sm">
 										Error Details (Development Only)
 									</summary>
-									<pre className="mt-2 overflow-auto text-xs text-red-700">
+									<pre className="mt-2 overflow-auto text-red-700 text-xs">
 										{this.state.error.message}
 										{"\n\n"}
 										{this.state.error.stack}

@@ -12,22 +12,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/utils/trpc";
 
-const TITLE_TEXT = `
- ██████╗ ███████╗████████╗████████╗███████╗██████╗
- ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗
- ██████╔╝█████╗     ██║      ██║   █████╗  ██████╔╝
- ██╔══██╗██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗
- ██████╔╝███████╗   ██║      ██║   ███████╗██║  ██║
- ╚═════╝ ╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝
-
- ████████╗    ███████╗████████╗ █████╗  ██████╗██╗ ██╗
- ╚══██╔══╝    ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║██╔╝
-    ██║       ███████╗   ██║   ███████║██║     █████╔╝
-    ██║       ╚════██║   ██║   ██╔══██║██║     ██╔═██╗
-    ██║       ███████║   ██║   ██║  ██║╚██████╗██║  ██╗
-    ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
- `;
-
 export default function Home() {
 	const healthCheck = useQuery(trpc.healthCheck.queryOptions());
 
@@ -41,10 +25,6 @@ export default function Home() {
 				</div>
 
 				<div className="fade-in slide-in-from-bottom-8 animate-in duration-1000">
-					<pre className="mb-8 hidden overflow-x-auto font-mono text-[10px] leading-none opacity-50 md:block">
-						{TITLE_TEXT}
-					</pre>
-
 					<div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-background/50 px-3 py-1 text-sm backdrop-blur-md">
 						<Sparkles className="h-4 w-4 text-primary" />
 						<span className="font-medium">

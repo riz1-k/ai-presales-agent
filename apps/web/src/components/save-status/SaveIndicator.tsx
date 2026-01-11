@@ -1,5 +1,5 @@
-import type { AutoSaveStatus } from "@/hooks/useAutoSave";
 import { CheckCircle2, Circle, Loader2, XCircle } from "lucide-react";
+import type { AutoSaveStatus } from "@/hooks/useAutoSave";
 
 interface SaveIndicatorProps {
 	status: AutoSaveStatus;

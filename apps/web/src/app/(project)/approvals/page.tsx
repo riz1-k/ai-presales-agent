@@ -1,23 +1,25 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { FileText, Loader2, Search } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 import { ApprovalActions } from "@/components/approval/ApprovalActions";
 import { ApprovalStatus } from "@/components/approval/ApprovalStatus";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { useQuery } from "@tanstack/react-query";
-import { FileText, Loader2, Search } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
 
 export default function ApprovalsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
-	const { data: pendingProjects, isLoading, refetch } = useQuery(
-		trpc.approvals.getPendingApprovals.queryOptions()
-	);
+	const {
+		data: pendingProjects,
+		isLoading,
+		refetch,
+	} = useQuery(trpc.approvals.getPendingApprovals.queryOptions());
 
 	const filteredProjects = pendingProjects?.filter((project) =>
 		project.projectName.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -41,7 +43,7 @@ export default function ApprovalsPage() {
 	return (
 		<div className="container mx-auto max-w-7xl px-4 py-8">
 			<div className="mb-8">
-				<h1 className="text-3xl font-bold">Pending Approvals</h1>
+				<h1 className="font-bold text-3xl">Pending Approvals</h1>
 				<p className="mt-2 text-muted-foreground">
 					Review and approve projects submitted for approval
 				</p>
@@ -49,7 +51,7 @@ export default function ApprovalsPage() {
 
 			<div className="mb-6">
 				<div className="relative">
-					<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+					<Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						placeholder="Search projects..."
 						value={searchQuery}
@@ -69,15 +71,15 @@ export default function ApprovalsPage() {
 						<Card key={project.id} className="p-6">
 							<div className="flex items-start justify-between">
 								<div className="flex-1">
-									<div className="flex items-center gap-3 mb-2">
+									<div className="mb-2 flex items-center gap-3">
 										<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
 											<FileText className="h-5 w-5 text-primary" />
 										</div>
 										<div>
-											<h3 className="text-lg font-semibold">
+											<h3 className="font-semibold text-lg">
 												{project.projectName}
 											</h3>
-											<div className="flex items-center gap-2 text-sm text-muted-foreground">
+											<div className="flex items-center gap-2 text-muted-foreground text-sm">
 												<span>Submitted by {project.user?.name}</span>
 												<span>•</span>
 												<span>{formatDate(project.updatedAt)}</span>
@@ -91,12 +93,11 @@ export default function ApprovalsPage() {
 
 									{project.approvals && project.approvals.length > 0 && (
 										<div className="mt-4 rounded-md bg-muted p-3">
-											<p className="text-sm font-medium mb-1">
+											<p className="mb-1 font-medium text-sm">
 												Submission Message:
 											</p>
-											<p className="text-sm text-muted-foreground">
-												{project.approvals[0].comments ||
-													"No message provided"}
+											<p className="text-muted-foreground text-sm">
+												{project.approvals[0].comments || "No message provided"}
 											</p>
 										</div>
 									)}
@@ -112,7 +113,7 @@ export default function ApprovalsPage() {
 							</div>
 
 							<div className="mt-6 flex items-center justify-between border-t pt-4">
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted-foreground text-sm">
 									Project ID: {project.id.slice(0, 8)}...
 								</p>
 
@@ -128,8 +129,8 @@ export default function ApprovalsPage() {
 			) : (
 				<div className="flex h-64 flex-col items-center justify-center text-center">
 					<FileText className="mb-4 h-12 w-12 text-muted-foreground opacity-50" />
-					<h3 className="mb-2 text-lg font-semibold">No pending approvals</h3>
-					<p className="text-sm text-muted-foreground">
+					<h3 className="mb-2 font-semibold text-lg">No pending approvals</h3>
+					<p className="text-muted-foreground text-sm">
 						{searchQuery
 							? "Try a different search term"
 							: "All projects have been reviewed"}

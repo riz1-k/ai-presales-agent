@@ -1,5 +1,9 @@
 "use client";
 
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { AlertCircle, CheckCircle2, Loader2, Send } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -12,10 +16,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle2, Loader2, Send } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 interface SubmitForApprovalModalProps {
 	open: boolean;
@@ -76,7 +76,7 @@ export function SubmitForApprovalModal({
 				<div className="space-y-4">
 					{/* Validation Status */}
 					{isValidating ? (
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
 							<Loader2 className="h-4 w-4 animate-spin" />
 							<span>Validating project...</span>
 						</div>
@@ -86,12 +86,12 @@ export function SubmitForApprovalModal({
 							{validation.errors.length > 0 && (
 								<div className="rounded-lg border border-red-200 bg-red-50 p-3">
 									<div className="flex items-start gap-2">
-										<AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
+										<AlertCircle className="mt-0.5 h-4 w-4 text-red-600" />
 										<div className="flex-1">
-											<p className="text-sm font-medium text-red-900">
+											<p className="font-medium text-red-900 text-sm">
 												Required fields missing
 											</p>
-											<ul className="mt-2 space-y-1 text-sm text-red-700">
+											<ul className="mt-2 space-y-1 text-red-700 text-sm">
 												{validation.errors.map((error: string, i: number) => (
 													<li key={i}>• {error}</li>
 												))}
@@ -105,15 +105,17 @@ export function SubmitForApprovalModal({
 							{validation.warnings.length > 0 && (
 								<div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
 									<div className="flex items-start gap-2">
-										<AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
+										<AlertCircle className="mt-0.5 h-4 w-4 text-yellow-600" />
 										<div className="flex-1">
-											<p className="text-sm font-medium text-yellow-900">
+											<p className="font-medium text-sm text-yellow-900">
 												Recommendations
 											</p>
 											<ul className="mt-2 space-y-1 text-sm text-yellow-700">
-												{validation.warnings.map((warning: string, i: number) => (
-													<li key={i}>• {warning}</li>
-												))}
+												{validation.warnings.map(
+													(warning: string, i: number) => (
+														<li key={i}>• {warning}</li>
+													),
+												)}
 											</ul>
 										</div>
 									</div>
@@ -125,7 +127,7 @@ export function SubmitForApprovalModal({
 								<div className="rounded-lg border border-green-200 bg-green-50 p-3">
 									<div className="flex items-center gap-2">
 										<CheckCircle2 className="h-4 w-4 text-green-600" />
-										<p className="text-sm text-green-900">
+										<p className="text-green-900 text-sm">
 											Project is ready for approval
 										</p>
 									</div>
@@ -156,10 +158,7 @@ export function SubmitForApprovalModal({
 					>
 						Cancel
 					</Button>
-					<Button
-						onClick={handleSubmit}
-						disabled={!canSubmit}
-					>
+					<Button onClick={handleSubmit} disabled={!canSubmit}>
 						{submitMutation.isPending ? (
 							<>
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />

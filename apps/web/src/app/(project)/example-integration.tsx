@@ -7,16 +7,16 @@
 
 "use client";
 
-import { useAutoSave, useRecovery } from "@/hooks";
-import { SaveIndicator } from "@/components/save-status/SaveIndicator";
-import { RecoveryModal } from "@/components/save-status/RecoveryModal";
-import { VersionHistory } from "@/components/save-status/VersionHistory";
-import { Button } from "@/components/ui/button";
-import { trpc } from "@/lib/trpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { History, Save } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { RecoveryModal } from "@/components/save-status/RecoveryModal";
+import { SaveIndicator } from "@/components/save-status/SaveIndicator";
+import { VersionHistory } from "@/components/save-status/VersionHistory";
+import { Button } from "@/components/ui/button";
+import { useAutoSave, useRecovery } from "@/hooks";
+import { trpc } from "@/lib/trpc";
 
 interface ProjectData {
 	projectName: string;
@@ -25,7 +25,11 @@ interface ProjectData {
 	// ... other fields
 }
 
-export default function ProjectPageExample({ projectId }: { projectId: string }) {
+export default function ProjectPageExample({
+	projectId,
+}: {
+	projectId: string;
+}) {
 	// State
 	const [projectData, setProjectData] = useState<ProjectData>({
 		projectName: "",
@@ -36,15 +40,21 @@ export default function ProjectPageExample({ projectId }: { projectId: string })
 
 	// Queries
 	const queryClient = useQueryClient();
-	const { data: project } = useQuery(trpc.projects.getById.queryOptions({ projectId }));
-	const { data: versions } = useQuery(trpc.projects.getVersions.queryOptions({ projectId }));
+	const { data: project } = useQuery(
+		trpc.projects.getById.queryOptions({ projectId }),
+	);
+	const { data: versions } = useQuery(
+		trpc.projects.getVersions.queryOptions({ projectId }),
+	);
 
 	// Mutations
 	const createVersion = useMutation(
 		trpc.projects.createVersion.mutationOptions({
 			onSuccess: () => {
 				toast.success("Version saved!");
-				queryClient.invalidateQueries({ queryKey: trpc.projects.getVersions.queryKey({ projectId }) });
+				queryClient.invalidateQueries({
+					queryKey: trpc.projects.getVersions.queryKey({ projectId }),
+				});
 			},
 		}),
 	);
@@ -54,7 +64,9 @@ export default function ProjectPageExample({ projectId }: { projectId: string })
 			onSuccess: () => {
 				toast.success("Version restored!");
 				// Reload project data
-				queryClient.invalidateQueries({ queryKey: trpc.projects.getById.queryKey({ projectId }) });
+				queryClient.invalidateQueries({
+					queryKey: trpc.projects.getById.queryKey({ projectId }),
+				});
 			},
 		}),
 	);
@@ -122,7 +134,9 @@ export default function ProjectPageExample({ projectId }: { projectId: string })
 			<header className="border-b bg-background px-6 py-4">
 				<div className="flex items-center justify-between">
 					<div>
-						<h1 className="text-2xl font-bold">{projectData.projectName || "Untitled Project"}</h1>
+						<h1 className="font-bold text-2xl">
+							{projectData.projectName || "Untitled Project"}
+						</h1>
 						<SaveIndicator status={saveStatus} />
 					</div>
 
@@ -153,7 +167,7 @@ export default function ProjectPageExample({ projectId }: { projectId: string })
 				<div className="mx-auto max-w-4xl space-y-6">
 					{/* Project Name */}
 					<div>
-						<label className="mb-2 block text-sm font-medium">
+						<label className="mb-2 block font-medium text-sm">
 							Project Name
 						</label>
 						<input
@@ -172,7 +186,7 @@ export default function ProjectPageExample({ projectId }: { projectId: string })
 
 					{/* Description */}
 					<div>
-						<label className="mb-2 block text-sm font-medium">
+						<label className="mb-2 block font-medium text-sm">
 							Description
 						</label>
 						<textarea
@@ -191,7 +205,7 @@ export default function ProjectPageExample({ projectId }: { projectId: string })
 
 					{/* Requirements */}
 					<div>
-						<label className="mb-2 block text-sm font-medium">
+						<label className="mb-2 block font-medium text-sm">
 							Requirements
 						</label>
 						<div className="space-y-2">

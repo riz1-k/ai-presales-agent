@@ -26,11 +26,7 @@ class Logger {
 	private formatLog(entry: LogEntry): string {
 		const { level, message, context, timestamp, error } = entry;
 
-		const parts = [
-			`[${timestamp}]`,
-			`[${level.toUpperCase()}]`,
-			message,
-		];
+		const parts = [`[${timestamp}]`, `[${level.toUpperCase()}]`, message];
 
 		if (context && Object.keys(context).length > 0) {
 			parts.push(JSON.stringify(context, null, 2));
@@ -116,7 +112,11 @@ class Logger {
 	/**
 	 * Log performance metrics
 	 */
-	performance(operation: string, durationMs: number, context?: LogContext): void {
+	performance(
+		operation: string,
+		durationMs: number,
+		context?: LogContext,
+	): void {
 		this.info(`Performance: ${operation}`, {
 			...context,
 			durationMs,
@@ -131,7 +131,11 @@ class Logger {
 		const childLogger = new Logger();
 		const originalLog = childLogger.log.bind(childLogger);
 
-		childLogger.log = (level: LogLevel, message: string, additionalContext?: LogContext) => {
+		childLogger.log = (
+			level: LogLevel,
+			message: string,
+			additionalContext?: LogContext,
+		) => {
 			originalLog(level, message, { ...context, ...additionalContext });
 		};
 

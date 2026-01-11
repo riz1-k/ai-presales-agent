@@ -2,12 +2,12 @@ import { TRPCError } from "@trpc/server";
 import {
 	AIServiceError,
 	DatabaseError,
+	isCustomError,
 	NetworkError,
 	NotFoundError,
 	RateLimitError,
 	UnauthorizedError,
 	ValidationError,
-	isCustomError,
 } from "./error-types";
 
 export interface ErrorResponse {
@@ -28,7 +28,10 @@ export function handleError(error: unknown): ErrorResponse {
 				code: "VALIDATION_ERROR",
 				message: error.message,
 				details: error.details
-					? { field: error.field, ...(typeof error.details === "object" ? error.details : {}) }
+					? {
+							field: error.field,
+							...(typeof error.details === "object" ? error.details : {}),
+						}
 					: { field: error.field },
 				retryable: false,
 			};
@@ -94,7 +97,8 @@ export function handleError(error: unknown): ErrorResponse {
 			code: error.code,
 			message: error.message,
 			details: error.cause,
-			retryable: error.code === "TIMEOUT" || error.code === "INTERNAL_SERVER_ERROR",
+			retryable:
+				error.code === "TIMEOUT" || error.code === "INTERNAL_SERVER_ERROR",
 		};
 	}
 
@@ -126,8 +130,7 @@ export function getUserFriendlyMessage(error: unknown): string {
 		VALIDATION_ERROR: "Please check your input and try again",
 		NOT_FOUND: "The requested resource was not found",
 		UNAUTHORIZED: "You don't have permission to perform this action",
-		AI_SERVICE_ERROR:
-			"AI service is temporarily unavailable. Please try again",
+		AI_SERVICE_ERROR: "AI service is temporarily unavailable. Please try again",
 		RATE_LIMIT_EXCEEDED: "Too many requests. Please wait a moment",
 		DATABASE_ERROR: "A database error occurred. Please try again",
 		NETWORK_ERROR: "Network error. Please check your connection",

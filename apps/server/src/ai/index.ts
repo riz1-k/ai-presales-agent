@@ -1,4 +1,9 @@
-export { AI_CONFIG, type AIProvider, getAIModel, getCurrentProvider } from "./config";
+export {
+	AI_CONFIG,
+	type AIProvider,
+	getAIModel,
+	getCurrentProvider,
+} from "./config";
 export {
 	extractProjectData,
 	mergeProjectData,

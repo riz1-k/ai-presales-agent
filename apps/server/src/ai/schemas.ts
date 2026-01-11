@@ -97,4 +97,3 @@ export type SoftwareRole = z.infer<typeof SoftwareRoleEnum>;
 export type TeamMember = z.infer<typeof TeamMemberSchema>;
 export type TechnicalRequirements = z.infer<typeof TechnicalRequirementsSchema>;
 export type ExtractedProjectData = z.infer<typeof ExtractedProjectDataSchema>;
-

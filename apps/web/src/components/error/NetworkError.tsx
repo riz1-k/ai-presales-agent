@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface NetworkErrorProps {
 	onRetry?: () => void;
@@ -42,8 +42,10 @@ export function NetworkError({
 					<WifiOff className="h-4 w-4 text-orange-600" />
 				</div>
 				<div className="flex-1">
-					<h3 className="font-medium text-orange-900">No Internet Connection</h3>
-					<p className="mt-1 text-sm text-orange-700">{message}</p>
+					<h3 className="font-medium text-orange-900">
+						No Internet Connection
+					</h3>
+					<p className="mt-1 text-orange-700 text-sm">{message}</p>
 					{onRetry && (
 						<Button
 							variant="outline"

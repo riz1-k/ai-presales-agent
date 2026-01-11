@@ -29,10 +29,7 @@ export const projectNameSchema = z
 	.string()
 	.min(1, "Project name is required")
 	.max(100, "Project name must be less than 100 characters")
-	.regex(
-		/^[a-zA-Z0-9\s\-_.,()]+$/,
-		"Project name contains invalid characters",
-	);
+	.regex(/^[a-zA-Z0-9\s\-_.,()]+$/, "Project name contains invalid characters");
 
 /**
  * Validate email
@@ -87,10 +84,7 @@ export function escapeLikeQuery(query: string): string {
 /**
  * Validate and parse JSON safely
  */
-export function safeJsonParse<T>(
-	json: string,
-	fallback: T,
-): T {
+export function safeJsonParse<T>(json: string, fallback: T): T {
 	try {
 		return JSON.parse(json) as T;
 	} catch {
@@ -101,7 +95,11 @@ export function safeJsonParse<T>(
 /**
  * Truncate string to max length
  */
-export function truncate(str: string, maxLength: number, suffix = "..."): string {
+export function truncate(
+	str: string,
+	maxLength: number,
+	suffix = "...",
+): string {
 	if (str.length <= maxLength) return str;
 	return str.slice(0, maxLength - suffix.length) + suffix;
 }

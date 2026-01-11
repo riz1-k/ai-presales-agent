@@ -56,18 +56,27 @@ export function ProposalView({
 
 	if (!hasData) {
 		return (
-			<div className="flex h-full flex-col items-center justify-center px-6 py-12 text-center">
-				<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
-					<FileText className="h-8 w-8 text-muted-foreground" />
+			<div className="flex h-full flex-col items-center justify-center bg-muted/5 px-6 py-12 text-center">
+				<div className="relative mb-6">
+					<div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-background shadow-sm ring-1 ring-border">
+						<FileText className="h-10 w-10 text-muted-foreground/40" />
+					</div>
+					<div className="absolute -right-2 -bottom-2 flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground shadow-sm">
+						<Sparkles className="h-4 w-4" />
+					</div>
 				</div>
-				<h3 className="mb-2 font-medium text-lg">No Proposal Data Yet</h3>
-				<p className="max-w-sm text-muted-foreground text-sm">
-					Start chatting with the AI to generate project information. Data will
-					be automatically extracted from your conversation.
+				<h3 className="mb-2 font-semibold text-xl tracking-tight">
+					Waiting for Project Data
+				</h3>
+				<p className="max-w-xs text-muted-foreground text-sm leading-relaxed">
+					As you describe your project in the chat, I'll automatically extract
+					details and organize them here.
 				</p>
-				<div className="mt-4 flex items-center gap-2 text-muted-foreground text-xs">
-					<Sparkles className="h-4 w-4" />
-					<span>AI-extracted content will appear here</span>
+				<div className="mt-8 flex flex-col items-center gap-4">
+					<div className="h-px w-12 bg-border" />
+					<p className="font-medium text-muted-foreground text-xs uppercase tracking-tighter transition-all hover:tracking-widest">
+						AI Fact Extraction Active
+					</p>
 				</div>
 			</div>
 		);

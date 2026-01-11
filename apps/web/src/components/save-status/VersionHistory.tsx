@@ -1,5 +1,7 @@
 "use client";
 
+import { Clock, RotateCcw } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -9,8 +11,6 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Clock, RotateCcw } from "lucide-react";
-import { useState } from "react";
 
 interface Version {
 	id: string;
@@ -90,15 +90,15 @@ export function VersionHistory({
 													Version {version.versionNumber}
 												</span>
 												{version.completenessScore !== null && (
-													<span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+													<span className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-700 text-xs">
 														{version.completenessScore}% complete
 													</span>
 												)}
 											</div>
-											<p className="mt-1 text-sm text-muted-foreground">
+											<p className="mt-1 text-muted-foreground text-sm">
 												{version.changeSummary || "No description"}
 											</p>
-											<p className="mt-2 text-xs text-muted-foreground">
+											<p className="mt-2 text-muted-foreground text-xs">
 												{formatTime(version.createdAt)}
 											</p>
 										</div>
