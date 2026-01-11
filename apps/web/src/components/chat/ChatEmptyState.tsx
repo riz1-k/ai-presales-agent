@@ -1,7 +1,6 @@
 "use client";
 
 import { MessageSquarePlus, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface ChatEmptyStateProps {
 	onSuggestionClick?: (suggestion: string) => void;

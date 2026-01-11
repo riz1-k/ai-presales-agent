@@ -40,7 +40,7 @@ export default function ProjectPageExample({
 
 	// Queries
 	const queryClient = useQueryClient();
-	const { data: project } = useQuery(
+	const { data: _project } = useQuery(
 		trpc.projects.getById.queryOptions({ projectId }),
 	);
 	const { data: versions } = useQuery(
@@ -167,10 +167,14 @@ export default function ProjectPageExample({
 				<div className="mx-auto max-w-4xl space-y-6">
 					{/* Project Name */}
 					<div>
-						<label className="mb-2 block font-medium text-sm">
+						<label
+							htmlFor="project-name"
+							className="mb-2 block font-medium text-sm"
+						>
 							Project Name
 						</label>
 						<input
+							id="project-name"
 							type="text"
 							value={projectData.projectName}
 							onChange={(e) =>
@@ -186,10 +190,14 @@ export default function ProjectPageExample({
 
 					{/* Description */}
 					<div>
-						<label className="mb-2 block font-medium text-sm">
+						<label
+							htmlFor="description"
+							className="mb-2 block font-medium text-sm"
+						>
 							Description
 						</label>
 						<textarea
+							id="description"
 							value={projectData.description}
 							onChange={(e) =>
 								setProjectData((prev) => ({
@@ -205,12 +213,16 @@ export default function ProjectPageExample({
 
 					{/* Requirements */}
 					<div>
-						<label className="mb-2 block font-medium text-sm">
+						<label
+							htmlFor="requirements-list"
+							className="mb-2 block font-medium text-sm"
+							id="requirements-label"
+						>
 							Requirements
 						</label>
-						<div className="space-y-2">
+						<div className="space-y-2" id="requirements-list">
 							{projectData.requirements.map((req, index) => (
-								<div key={index} className="flex items-center gap-2">
+								<div key={`req-${req}`} className="flex items-center gap-2">
 									<input
 										type="text"
 										value={req}

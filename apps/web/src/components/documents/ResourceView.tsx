@@ -166,9 +166,9 @@ export function ResourceView({
 				<CardContent>
 					<div className="space-y-3">
 						{resourcePlan.team.map(
-							(member: ResourceTeamMember, index: number) => (
+							(member: ResourceTeamMember, _index: number) => (
 								<div
-									key={index}
+									key={member.role}
 									className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
 								>
 									<div className="flex items-center gap-4">

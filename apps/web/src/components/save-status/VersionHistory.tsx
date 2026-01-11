@@ -69,9 +69,10 @@ export function VersionHistory({
 					) : (
 						<div className="space-y-3">
 							{versions.map((version) => (
-								<div
+								<button
+									type="button"
 									key={version.id}
-									className={`rounded-lg border p-4 transition-colors ${
+									className={`w-full rounded-lg border p-4 text-left transition-colors ${
 										selectedVersion === version.id
 											? "border-primary bg-primary/5"
 											: "border-border hover:border-primary/50"
@@ -117,7 +118,7 @@ export function VersionHistory({
 											</Button>
 										)}
 									</div>
-								</div>
+								</button>
 							))}
 						</div>
 					)}

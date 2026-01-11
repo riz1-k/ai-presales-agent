@@ -22,7 +22,6 @@ export default function AIPage() {
 
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-		// biome-ignore lint/correctness/useExhaustiveDependencies: scroll to bottom when messages change
 	}, []);
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {

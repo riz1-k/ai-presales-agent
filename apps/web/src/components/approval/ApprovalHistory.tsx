@@ -91,7 +91,7 @@ export function ApprovalHistory({ projectId }: ApprovalHistoryProps) {
 				{/* Timeline line */}
 				<div className="absolute top-2 bottom-2 left-[18px] w-0.5 bg-border" />
 
-				{history.map((approval, index) => (
+				{history.map((approval, _index) => (
 					<Card key={approval.id} className="relative p-4 pl-12">
 						{/* Timeline dot */}
 						<div className="absolute top-4 left-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-background">
@@ -130,8 +130,8 @@ export function ApprovalHistory({ projectId }: ApprovalHistoryProps) {
 										</p>
 										<ul className="space-y-1 text-orange-700 text-sm">
 											{approval.requestedChanges.map(
-												(change: string, i: number) => (
-													<li key={i} className="flex items-start gap-2">
+												(change: string, _i: number) => (
+													<li key={change} className="flex items-start gap-2">
 														<span className="mt-0.5 text-orange-500">•</span>
 														<span>{change}</span>
 													</li>

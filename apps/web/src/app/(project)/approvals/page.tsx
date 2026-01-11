@@ -13,7 +13,7 @@ import { trpc } from "@/lib/trpc";
 
 export default function ApprovalsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
-	const [selectedProject, setSelectedProject] = useState<string | null>(null);
+	const [_selectedProject, setSelectedProject] = useState<string | null>(null);
 
 	const {
 		data: pendingProjects,

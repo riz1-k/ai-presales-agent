@@ -170,9 +170,9 @@ export function WBSView({
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-2">
-						{deliverables.map((d, i) => (
+						{deliverables.map((d, _i) => (
 							<div
-								key={i}
+								key={d.name}
 								className="flex items-center justify-between border-border/50 border-b py-1 last:border-0"
 							>
 								<span className="text-sm">{d.name}</span>

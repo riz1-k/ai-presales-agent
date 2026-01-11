@@ -128,7 +128,8 @@ export function normalizeWhitespace(str: string): string {
  */
 export function removeControlCharacters(str: string): string {
 	// Remove all control characters except newline and tab
-	return str.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, "");
+	// biome-ignore lint/suspicious/noControlCharactersInRegex: intentional
+	return str.replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F]/g, "");
 }
 
 /**

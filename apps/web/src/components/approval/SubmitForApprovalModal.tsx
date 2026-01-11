@@ -92,8 +92,8 @@ export function SubmitForApprovalModal({
 												Required fields missing
 											</p>
 											<ul className="mt-2 space-y-1 text-red-700 text-sm">
-												{validation.errors.map((error: string, i: number) => (
-													<li key={i}>• {error}</li>
+												{validation.errors.map((error: string, _i: number) => (
+													<li key={error}>• {error}</li>
 												))}
 											</ul>
 										</div>
@@ -112,8 +112,8 @@ export function SubmitForApprovalModal({
 											</p>
 											<ul className="mt-2 space-y-1 text-sm text-yellow-700">
 												{validation.warnings.map(
-													(warning: string, i: number) => (
-														<li key={i}>• {warning}</li>
+													(warning: string, _i: number) => (
+														<li key={warning}>• {warning}</li>
 													),
 												)}
 											</ul>

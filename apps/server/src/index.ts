@@ -100,16 +100,27 @@ async function loadConversationHistory(
 	}));
 }
 
+interface MessagePart {
+	type: string;
+	text?: string;
+}
+
+interface UIMessage {
+	role: string;
+	content?: string;
+	parts?: MessagePart[];
+}
+
 /**
  * Extract text content from a UI message (handles string content or parts)
  */
-function getMessageText(message: any): string {
+function getMessageText(message: UIMessage): string {
 	if (typeof message.content === "string" && message.content.length > 0) {
 		return message.content;
 	}
 	if (Array.isArray(message.parts)) {
 		return message.parts
-			.map((part: any) => (part.type === "text" ? part.text : ""))
+			.map((part: MessagePart) => (part.type === "text" ? part.text : ""))
 			.join("");
 	}
 	return "";
@@ -118,10 +129,7 @@ function getMessageText(message: any): string {
 /**
  * Save messages to database
  */
-async function saveMessages(
-	projectId: string,
-	messages: Array<{ role: string; content?: string; parts?: any[] }>,
-) {
+async function saveMessages(projectId: string, messages: UIMessage[]) {
 	for (const msg of messages) {
 		const text = getMessageText(msg);
 

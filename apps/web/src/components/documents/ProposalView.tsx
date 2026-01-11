@@ -185,7 +185,7 @@ export function ProposalView({
 					<CardContent>
 						<ul className="space-y-2">
 							{info.objectives.map((objective, index) => (
-								<li key={index} className="flex items-start gap-2">
+								<li key={objective} className="flex items-start gap-2">
 									<span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 font-medium text-primary text-xs">
 										{index + 1}
 									</span>

@@ -36,7 +36,9 @@ export function ApprovalActions({
 	const [approveComments, setApproveComments] = useState("");
 	const [rejectReason, setRejectReason] = useState("");
 	const [changesComments, setChangesComments] = useState("");
-	const [requestedChanges, setRequestedChanges] = useState<string[]>([""]);
+	const [requestedChanges, setRequestedChanges] = useState<
+		{ id: string; content: string }[]
+	>([{ id: Math.random().toString(36).substr(2, 9), content: "" }]);
 
 	const approveMutation = useMutation(
 		trpc.approvals.approveProject.mutationOptions({
@@ -68,7 +70,9 @@ export function ApprovalActions({
 				toast.success("Changes requested");
 				setShowChangesDialog(false);
 				setChangesComments("");
-				setRequestedChanges([""]);
+				setRequestedChanges([
+					{ id: Math.random().toString(36).substr(2, 9), content: "" },
+				]);
 				onSuccess?.();
 			},
 			onError: (error) => toast.error(error.message),
@@ -98,7 +102,9 @@ export function ApprovalActions({
 			toast.error("Please provide comments");
 			return;
 		}
-		const validChanges = requestedChanges.filter((c) => c.trim() !== "");
+		const validChanges = requestedChanges
+			.map((c) => c.content)
+			.filter((c) => c.trim() !== "");
 		if (validChanges.length === 0) {
 			toast.error("Please add at least one change request");
 			return;
@@ -111,17 +117,22 @@ export function ApprovalActions({
 	};
 
 	const addChangeRequest = () => {
-		setRequestedChanges([...requestedChanges, ""]);
+		setRequestedChanges([
+			...requestedChanges,
+			{ id: Math.random().toString(36).substr(2, 9), content: "" },
+		]);
 	};
 
-	const updateChangeRequest = (index: number, value: string) => {
-		const updated = [...requestedChanges];
-		updated[index] = value;
-		setRequestedChanges(updated);
+	const updateChangeRequest = (id: string, value: string) => {
+		setRequestedChanges(
+			requestedChanges.map((rc) =>
+				rc.id === id ? { ...rc, content: value } : rc,
+			),
+		);
 	};
 
-	const removeChangeRequest = (index: number) => {
-		setRequestedChanges(requestedChanges.filter((_, i) => i !== index));
+	const removeChangeRequest = (id: string) => {
+		setRequestedChanges(requestedChanges.filter((rc) => rc.id !== id));
 	};
 
 	return (
@@ -278,19 +289,19 @@ export function ApprovalActions({
 							</Label>
 							<div className="space-y-2">
 								{requestedChanges.map((change, index) => (
-									<div key={index} className="flex items-center gap-2">
+									<div key={change.id} className="flex items-center gap-2">
 										<Input
 											placeholder={`Change request ${index + 1}`}
-											value={change}
+											value={change.content}
 											onChange={(e) =>
-												updateChangeRequest(index, e.target.value)
+												updateChangeRequest(change.id, e.target.value)
 											}
 										/>
 										{requestedChanges.length > 1 && (
 											<Button
 												variant="outline"
 												size="icon"
-												onClick={() => removeChangeRequest(index)}
+												onClick={() => removeChangeRequest(change.id)}
 											>
 												<XCircle className="h-4 w-4" />
 											</Button>

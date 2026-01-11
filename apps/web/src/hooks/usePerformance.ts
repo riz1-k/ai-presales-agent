@@ -40,9 +40,9 @@ export function useWhyDidYouUpdate(
 			const changedProps: Record<string, { from: unknown; to: unknown }> = {};
 
 			allKeys.forEach((key) => {
-				if (previousProps.current![key] !== props[key]) {
+				if (previousProps.current?.[key] !== props[key]) {
 					changedProps[key] = {
-						from: previousProps.current![key],
+						from: previousProps.current?.[key],
 						to: props[key],
 					};
 				}

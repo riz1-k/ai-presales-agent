@@ -29,7 +29,6 @@ export function getAIModel(provider?: AIProvider): LanguageModel {
 	switch (selectedProvider) {
 		case "openai":
 			return openai(AI_CONFIG.models.openai);
-		case "gemini":
 		default:
 			return google(AI_CONFIG.models.gemini);
 	}
