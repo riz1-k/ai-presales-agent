@@ -32,10 +32,12 @@ export interface ExtractedProjectData {
 	}>;
 	team?: Array<{
 		role: string;
+		roleLabel?: string;
 		count?: number;
-		skillset?: string[];
 		seniorityLevel?: "junior" | "mid" | "senior" | "lead";
+		allocationPercentage?: number;
 		estimatedHours?: number;
+		hourlyRate?: number;
 	}>;
 	technical?: {
 		technologies?: string[];

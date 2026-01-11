@@ -1,4 +1,4 @@
-export { AI_CONFIG, getAIModel } from "./config";
+export { AI_CONFIG, type AIProvider, getAIModel, getCurrentProvider } from "./config";
 export {
 	extractProjectData,
 	mergeProjectData,
@@ -15,6 +15,8 @@ export {
 	ExtractedProjectDataSchema,
 	type ProjectInfo,
 	ProjectInfoSchema,
+	type SoftwareRole,
+	SoftwareRoleEnum,
 	type TeamMember,
 	TeamMemberSchema,
 	type TechnicalRequirements,

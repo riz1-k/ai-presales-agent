@@ -1,13 +1,12 @@
 "use client";
 
-import { Code2, Info, Sparkles, Users } from "lucide-react";
+import { Briefcase, Clock, DollarSign, Info, Sparkles, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ExtractedProjectData, GeneratedDocuments } from "@/hooks";
+import type { GeneratedDocuments, ResourceTeamMember } from "@/hooks";
 
 interface ResourceViewProps {
-	extractedData?: ExtractedProjectData | null;
 	generatedDocuments?: GeneratedDocuments | null;
 	isLoading?: boolean;
 }
@@ -19,8 +18,20 @@ const seniorityColors = {
 	lead: "bg-orange-500/20 text-orange-600 dark:text-orange-400",
 };
 
+const roleIcons: Record<string, string> = {
+	project_manager: "📋",
+	tech_lead: "🏗️",
+	frontend_developer: "🎨",
+	backend_developer: "⚙️",
+	fullstack_developer: "💻",
+	devops_engineer: "🚀",
+	qa_engineer: "🔍",
+	ui_ux_designer: "✨",
+	business_analyst: "📊",
+	scrum_master: "🔄",
+};
+
 export function ResourceView({
-	extractedData,
 	generatedDocuments,
 	isLoading = false,
 }: ResourceViewProps) {
@@ -28,18 +39,14 @@ export function ResourceView({
 		return (
 			<div className="space-y-4 p-6">
 				<Skeleton className="h-8 w-1/2" />
+				<div className="grid gap-4 md:grid-cols-3">
+					{[1, 2, 3].map((i) => (
+						<Skeleton key={i} className="h-24" />
+					))}
+				</div>
 				<div className="space-y-3">
 					{[1, 2, 3, 4].map((i) => (
-						<div
-							key={i}
-							className="flex items-center gap-4 rounded-lg border p-4"
-						>
-							<Skeleton className="h-10 w-10 rounded-full" />
-							<div className="flex-1 space-y-2">
-								<Skeleton className="h-4 w-1/3" />
-								<Skeleton className="h-3 w-1/2" />
-							</div>
-						</div>
+						<Skeleton key={i} className="h-20" />
 					))}
 				</div>
 			</div>
@@ -47,16 +54,8 @@ export function ResourceView({
 	}
 
 	const resourcePlan = generatedDocuments?.resourcePlan;
-	const team = extractedData?.team;
-	const technical = extractedData?.technical;
 
-	// Check if there's any meaningful data to display
-	const hasData =
-		resourcePlan ||
-		(team && team.length > 0) ||
-		(technical?.technologies && technical.technologies.length > 0);
-
-	if (!hasData) {
+	if (!resourcePlan || !resourcePlan.team || resourcePlan.team.length === 0) {
 		return (
 			<div className="flex h-full flex-col items-center justify-center px-6 py-12 text-center">
 				<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
@@ -77,19 +76,55 @@ export function ResourceView({
 
 	return (
 		<div className="space-y-6 p-6">
-			{!resourcePlan && (
-				<div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-3">
-					<div className="flex items-center gap-2 text-primary text-sm">
-						<Info className="h-4 w-4" />
-						<span>
-							Draft view. Generate to see AI-powered resource strategy.
-						</span>
-					</div>
-				</div>
-			)}
+			{/* Summary Stats */}
+			<div className="grid gap-4 md:grid-cols-3">
+				<Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
+					<CardContent className="pt-6">
+						<div className="flex items-center gap-3">
+							<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/20">
+								<Users className="h-5 w-5 text-blue-500" />
+							</div>
+							<div>
+								<p className="text-2xl font-bold">{resourcePlan.totalHeadcount}</p>
+								<p className="text-muted-foreground text-sm">Total Headcount</p>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
 
-			{/* Strategy Summary (from generated doc) */}
-			{resourcePlan?.summary && (
+				<Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
+					<CardContent className="pt-6">
+						<div className="flex items-center gap-3">
+							<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/20">
+								<Clock className="h-5 w-5 text-purple-500" />
+							</div>
+							<div>
+								<p className="text-2xl font-bold">{resourcePlan.totalHours.toLocaleString()}</p>
+								<p className="text-muted-foreground text-sm">Total Hours</p>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				{resourcePlan.estimatedCost && (
+					<Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
+						<CardContent className="pt-6">
+							<div className="flex items-center gap-3">
+								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/20">
+									<DollarSign className="h-5 w-5 text-green-500" />
+								</div>
+								<div>
+									<p className="text-2xl font-bold">${resourcePlan.estimatedCost.toLocaleString()}</p>
+									<p className="text-muted-foreground text-sm">Estimated Cost</p>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				)}
+			</div>
+
+			{/* Strategy Summary */}
+			{resourcePlan.summary && (
 				<Card className="border-primary/20 bg-primary/5">
 					<CardHeader className="pb-2">
 						<CardTitle className="flex items-center gap-2 font-medium text-sm">
@@ -105,77 +140,71 @@ export function ResourceView({
 				</Card>
 			)}
 
-			{/* Team Requirements */}
-			{team && team.length > 0 && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<Users className="h-5 w-5" />
-							Team Composition
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-3">
-							{team.map((member, index) => (
-								<div
-									key={index}
-									className="flex items-center justify-between rounded-lg border p-4"
-								>
-									<div className="flex items-center gap-4">
-										<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-medium text-primary text-sm">
-											{member.count || 1}x
+			{/* Team Composition */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Briefcase className="h-5 w-5" />
+						Team Composition
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-3">
+						{resourcePlan.team.map((member: ResourceTeamMember, index: number) => (
+							<div
+								key={index}
+								className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors"
+							>
+								<div className="flex items-center gap-4">
+									<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 text-2xl">
+										{roleIcons[member.role] || "👤"}
+									</div>
+									<div>
+										<div className="flex items-center gap-2">
+											<h4 className="font-semibold">{member.roleLabel}</h4>
+											<span className="rounded-full bg-primary/20 px-2 py-0.5 text-primary text-xs font-medium">
+												×{member.count}
+											</span>
 										</div>
-										<div>
-											<h4 className="font-medium">{member.role}</h4>
-											{member.skillset && member.skillset.length > 0 && (
-												<p className="text-muted-foreground text-xs">
-													{member.skillset.join(", ")}
-												</p>
+										<div className="flex items-center gap-3 mt-1 text-muted-foreground text-xs">
+											{member.allocationPercentage < 100 && (
+												<span>{member.allocationPercentage}% allocation</span>
+											)}
+											{member.estimatedHours && (
+												<span>{member.estimatedHours}h per person</span>
 											)}
 										</div>
 									</div>
-									<div className="flex items-center gap-3">
-										{member.seniorityLevel && (
-											<Badge
-												variant="secondary"
-												className={`text-[10px] ${seniorityColors[member.seniorityLevel]}`}
-											>
-												{member.seniorityLevel}
-											</Badge>
-										)}
-										{member.estimatedHours && (
-											<span className="font-mono text-muted-foreground text-xs">
-												{member.estimatedHours}h
-											</span>
-										)}
-									</div>
 								</div>
-							))}
-						</div>
-					</CardContent>
-				</Card>
-			)}
+								<div className="flex items-center gap-3">
+									{member.seniorityLevel && (
+										<Badge
+											variant="secondary"
+											className={`text-[10px] capitalize ${seniorityColors[member.seniorityLevel]}`}
+										>
+											{member.seniorityLevel}
+										</Badge>
+									)}
+									{member.estimatedCost && (
+										<span className="font-mono text-muted-foreground text-sm">
+											${(member.estimatedCost * member.count).toLocaleString()}
+										</span>
+									)}
+								</div>
+							</div>
+						))}
+					</div>
+				</CardContent>
+			</Card>
 
-			{/* Technical Stack */}
-			{technical?.technologies && technical.technologies.length > 0 && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<Code2 className="h-5 w-5" />
-							Technology Stack
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="flex flex-wrap gap-2">
-							{technical.technologies.map((tech, index) => (
-								<Badge key={index} variant="secondary">
-									{tech}
-								</Badge>
-							))}
-						</div>
-					</CardContent>
-				</Card>
-			)}
+			{/* Info Banner */}
+			<div className="flex items-center gap-2 rounded-lg border border-muted bg-muted/30 p-3 text-muted-foreground text-xs">
+				<Info className="h-4 w-4 shrink-0" />
+				<span>
+					Team composition is estimated based on project scope, complexity, and industry standards.
+					Actual staffing may vary based on availability and specific requirements.
+				</span>
+			</div>
 		</div>
 	);
 }

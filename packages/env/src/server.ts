@@ -10,6 +10,7 @@ export const env = createEnv({
 		CORS_ORIGIN: z.url(),
 		GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
 		OPENAI_API_KEY: z.string().optional(),
+		AI_PROVIDER: z.enum(["gemini", "openai"]).default("gemini"),
 		NODE_ENV: z
 			.enum(["development", "production", "test"])
 			.default("development"),

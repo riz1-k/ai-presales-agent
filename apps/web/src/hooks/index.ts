@@ -1,4 +1,4 @@
-export { type GeneratedDocuments, useDocuments } from "./useDocuments";
+export { type GeneratedDocuments, type ResourceTeamMember, useDocuments } from "./useDocuments";
 export {
 	type ExtractedProjectData,
 	useExtractedData,

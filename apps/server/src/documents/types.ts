@@ -12,11 +12,25 @@ export interface ProposalDocument {
 	sections: DocumentSection[];
 }
 
+export interface ResourceTeamMember {
+	role: string;
+	roleLabel: string;
+	count: number;
+	seniorityLevel?: "junior" | "mid" | "senior" | "lead";
+	allocationPercentage: number;
+	estimatedHours?: number;
+	hourlyRate?: number;
+	estimatedCost?: number;
+}
+
 export interface ResourceDocument {
 	title: string;
 	generatedAt: Date;
 	summary: string;
+	team: ResourceTeamMember[];
 	totalHours: number;
+	totalHeadcount: number;
+	estimatedCost?: number;
 }
 
 export interface WBSTask {

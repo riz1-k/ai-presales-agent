@@ -36,14 +36,32 @@ export const DeliverableSchema = z.object({
 });
 
 /**
+ * Software development role types
+ */
+export const SoftwareRoleEnum = z.enum([
+	"project_manager",
+	"tech_lead",
+	"frontend_developer",
+	"backend_developer",
+	"fullstack_developer",
+	"devops_engineer",
+	"qa_engineer",
+	"ui_ux_designer",
+	"business_analyst",
+	"scrum_master",
+]);
+
+/**
  * Team Member Requirement
  */
 export const TeamMemberSchema = z.object({
-	role: z.string(),
+	role: SoftwareRoleEnum,
+	roleLabel: z.string().optional(), // Human-readable label
 	count: z.number().default(1),
-	skillset: z.array(z.string()).optional(),
 	seniorityLevel: z.enum(["junior", "mid", "senior", "lead"]).optional(),
+	allocationPercentage: z.number().min(0).max(100).default(100), // % of time allocated
 	estimatedHours: z.number().optional(),
+	hourlyRate: z.number().optional(), // For budget estimation
 });
 
 /**
@@ -75,6 +93,8 @@ export const ExtractedProjectDataSchema = z.object({
 export type ProjectInfo = z.infer<typeof ProjectInfoSchema>;
 export type TimelineBudget = z.infer<typeof TimelineBudgetSchema>;
 export type Deliverable = z.infer<typeof DeliverableSchema>;
+export type SoftwareRole = z.infer<typeof SoftwareRoleEnum>;
 export type TeamMember = z.infer<typeof TeamMemberSchema>;
 export type TechnicalRequirements = z.infer<typeof TechnicalRequirementsSchema>;
 export type ExtractedProjectData = z.infer<typeof ExtractedProjectDataSchema>;
+

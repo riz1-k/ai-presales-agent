@@ -16,6 +16,7 @@
 		"@ai-presales-agent/env": "workspace:*",
 		"@ai-sdk/devtools": "^0.0.2",
 		"@ai-sdk/google": "^3.0.1",
+		"@ai-sdk/openai": "^3.0.7",
 		"@hono/trpc-server": "^0.4.0",
 		"@trpc/server": "catalog:",
 		"ai": "catalog:",

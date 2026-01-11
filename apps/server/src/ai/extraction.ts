@@ -20,7 +20,7 @@ interface ExtractionResult {
 /**
  * System prompt for data extraction
  */
-const EXTRACTION_SYSTEM_PROMPT = `You are an expert data extraction assistant. Your task is to analyze conversation messages and extract structured project information.
+const EXTRACTION_SYSTEM_PROMPT = `You are an expert data extraction and software project estimation assistant. Your task is to analyze conversation messages and extract structured project information.
 
 IMPORTANT INSTRUCTIONS:
 1. Only extract information that is explicitly stated or strongly implied in the conversation
@@ -29,6 +29,25 @@ IMPORTANT INSTRUCTIONS:
 4. Prefer the most recent information if there are conflicts
 5. Extract numbers accurately (budgets, timelines, hours, etc.)
 6. Group related features/requirements into appropriate categories
+
+TEAM COMPOSITION RULES:
+When extracting team requirements, use these predefined software development roles:
+- "project_manager" - Project Manager (usually 1, at 25-50% allocation)
+- "tech_lead" - Technical Lead (usually 1, responsible for architecture)
+- "frontend_developer" - Frontend Developer
+- "backend_developer" - Backend Developer
+- "fullstack_developer" - Full Stack Developer (if combining front/back)
+- "devops_engineer" - DevOps/Infrastructure Engineer
+- "qa_engineer" - QA/Test Engineer
+- "ui_ux_designer" - UI/UX Designer
+- "business_analyst" - Business Analyst
+- "scrum_master" - Scrum Master (if agile methodology)
+
+Estimate team size based on:
+- Project scope and complexity
+- Timeline constraints
+- Budget if mentioned
+- Standard software industry practices (e.g., 1 PM per team, 2-3 devs for small projects, 5-8 for medium)
 
 Extract all relevant project information from the conversation.`;
 
