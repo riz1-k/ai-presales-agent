@@ -14,7 +14,14 @@ export const projects = sqliteTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		projectName: text("project_name").notNull(),
 		status: text("status", {
-			enum: ["draft", "pending_approval", "approved", "finalized"],
+			enum: [
+				"draft",
+				"pending_approval",
+				"changes_requested",
+				"approved",
+				"finalized",
+				"archived",
+			],
 		})
 			.default("draft")
 			.notNull(),
@@ -121,14 +128,69 @@ export const approvals = sqliteTable(
 			.default("pending")
 			.notNull(),
 		comments: text("comments"),
+		requestedChanges: text("requested_changes"), // JSON array of change requests
 		createdAt: integer("created_at", { mode: "timestamp_ms" })
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+			.notNull(),
+		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+			.$onUpdate(() => new Date())
 			.notNull(),
 	},
 	(table) => [
 		index("approvals_projectId_idx").on(table.projectId),
 		index("approvals_approverId_idx").on(table.approverId),
 		index("approvals_status_idx").on(table.status),
+	],
+);
+
+// ============================================================================
+// PROJECT VERSIONS TABLE
+// ============================================================================
+export const projectVersions = sqliteTable(
+	"project_versions",
+	{
+		id: text("id").primaryKey(),
+		projectId: text("project_id")
+			.notNull()
+			.references(() => projects.id, { onDelete: "cascade" }),
+		versionNumber: integer("version_number").notNull(),
+		dataSnapshot: text("data_snapshot").notNull(), // JSON stringified project data
+		changeSummary: text("change_summary"), // Description of what changed
+		completenessScore: integer("completeness_score"), // 0-100
+		createdAt: integer("created_at", { mode: "timestamp_ms" })
+			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+			.notNull(),
+	},
+	(table) => [
+		index("projectVersions_projectId_idx").on(table.projectId),
+		index("projectVersions_versionNumber_idx").on(table.versionNumber),
+	],
+);
+
+// ============================================================================
+// PROJECT CHANGELOG TABLE
+// ============================================================================
+export const projectChangelog = sqliteTable(
+	"project_changelog",
+	{
+		id: text("id").primaryKey(),
+		projectId: text("project_id")
+			.notNull()
+			.references(() => projects.id, { onDelete: "cascade" }),
+		fieldName: text("field_name").notNull(),
+		oldValue: text("old_value"),
+		newValue: text("new_value"),
+		changeSource: text("change_source", {
+			enum: ["ai_extraction", "manual_edit", "system"],
+		}).notNull(),
+		createdAt: integer("created_at", { mode: "timestamp_ms" })
+			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+			.notNull(),
+	},
+	(table) => [
+		index("projectChangelog_projectId_idx").on(table.projectId),
+		index("projectChangelog_fieldName_idx").on(table.fieldName),
 	],
 );
 
@@ -145,6 +207,8 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
 	conversations: many(conversations),
 	documentSnapshots: many(documentSnapshots),
 	approvals: many(approvals),
+	versions: many(projectVersions),
+	changelog: many(projectChangelog),
 }));
 
 export const projectDataRelations = relations(projectData, ({ one }) => ({
@@ -181,3 +245,23 @@ export const approvalsRelations = relations(approvals, ({ one }) => ({
 		references: [user.id],
 	}),
 }));
+
+export const projectVersionsRelations = relations(
+	projectVersions,
+	({ one }) => ({
+		project: one(projects, {
+			fields: [projectVersions.projectId],
+			references: [projects.id],
+		}),
+	}),
+);
+
+export const projectChangelogRelations = relations(
+	projectChangelog,
+	({ one }) => ({
+		project: one(projects, {
+			fields: [projectChangelog.projectId],
+			references: [projects.id],
+		}),
+	}),
+);

@@ -215,4 +215,266 @@ export const projectsRouter = router({
 
 			return data;
 		}),
+
+	// Bulk update project data with changelog tracking
+	updateProjectData: protectedProcedure
+		.input(
+			z.object({
+				projectId: z.string(),
+				changes: z.record(z.string(), z.string()),
+				changeSource: z
+					.enum(["ai_extraction", "manual_edit", "system"])
+					.default("manual_edit"),
+				createVersion: z.boolean().default(false),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			// Verify project ownership
+			const project = await db.query.projects.findFirst({
+				where: and(
+					eq(projects.id, input.projectId),
+					eq(projects.userId, ctx.session.user.id),
+				),
+			});
+
+			if (!project) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Project not found",
+				});
+			}
+
+			// Create version snapshot if requested
+			if (input.createVersion) {
+				const { versionManager } = await import("../services/version-manager");
+				await versionManager.createVersion(
+					input.projectId,
+					`Bulk update: ${Object.keys(input.changes).length} fields`,
+				);
+			}
+
+			// Get existing data
+			const existingData = await db.query.projectData.findMany({
+				where: eq(projectData.projectId, input.projectId),
+			});
+
+			const existingMap = new Map(
+				existingData.map((d) => [d.fieldName, d]),
+			);
+
+			// Process each change
+			const { versionManager } = await import("../services/version-manager");
+
+			for (const [fieldName, fieldValue] of Object.entries(input.changes)) {
+				const existing = existingMap.get(fieldName);
+
+				if (existing) {
+					// Log the change
+					await versionManager.logChange(
+						input.projectId,
+						fieldName,
+						existing.fieldValue,
+						fieldValue,
+						input.changeSource,
+					);
+
+					// Update the field
+					await db
+						.update(projectData)
+						.set({ fieldValue })
+						.where(eq(projectData.id, existing.id));
+				} else {
+					// Log the addition
+					await versionManager.logChange(
+						input.projectId,
+						fieldName,
+						null,
+						fieldValue,
+						input.changeSource,
+					);
+
+					// Insert new field
+					await db.insert(projectData).values({
+						id: generateId(),
+						projectId: input.projectId,
+						fieldName,
+						fieldValue,
+					});
+				}
+			}
+
+			// Update project's updatedAt
+			await db
+				.update(projects)
+				.set({ updatedAt: new Date() })
+				.where(eq(projects.id, input.projectId));
+
+			return { success: true };
+		}),
+
+	// Duplicate a project
+	duplicate: protectedProcedure
+		.input(z.object({ projectId: z.string() }))
+		.mutation(async ({ ctx, input }) => {
+			// Verify project ownership
+			const project = await db.query.projects.findFirst({
+				where: and(
+					eq(projects.id, input.projectId),
+					eq(projects.userId, ctx.session.user.id),
+				),
+				with: {
+					projectData: true,
+				},
+			});
+
+			if (!project) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Project not found",
+				});
+			}
+
+			// Create new project
+			const newProjectId = generateId();
+			await db.insert(projects).values({
+				id: newProjectId,
+				userId: ctx.session.user.id,
+				projectName: `${project.projectName} (Copy)`,
+				status: "draft",
+			});
+
+			// Copy project data
+			if (project.projectData.length > 0) {
+				const dataToCopy = project.projectData.map((d) => ({
+					id: generateId(),
+					projectId: newProjectId,
+					fieldName: d.fieldName,
+					fieldValue: d.fieldValue,
+				}));
+
+				await db.insert(projectData).values(dataToCopy);
+			}
+
+			return { id: newProjectId };
+		}),
+
+	// Create a version snapshot
+	createVersion: protectedProcedure
+		.input(
+			z.object({
+				projectId: z.string(),
+				changeSummary: z.string().optional(),
+				completenessScore: z.number().min(0).max(100).optional(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			// Verify project ownership
+			const project = await db.query.projects.findFirst({
+				where: and(
+					eq(projects.id, input.projectId),
+					eq(projects.userId, ctx.session.user.id),
+				),
+			});
+
+			if (!project) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Project not found",
+				});
+			}
+
+			const { versionManager } = await import("../services/version-manager");
+			const versionId = await versionManager.createVersion(
+				input.projectId,
+				input.changeSummary,
+				input.completenessScore,
+			);
+
+			return { versionId };
+		}),
+
+	// Get all versions for a project
+	getVersions: protectedProcedure
+		.input(z.object({ projectId: z.string() }))
+		.query(async ({ ctx, input }) => {
+			// Verify project ownership
+			const project = await db.query.projects.findFirst({
+				where: and(
+					eq(projects.id, input.projectId),
+					eq(projects.userId, ctx.session.user.id),
+				),
+			});
+
+			if (!project) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Project not found",
+				});
+			}
+
+			const { versionManager } = await import("../services/version-manager");
+			return await versionManager.getVersions(input.projectId);
+		}),
+
+	// Restore a version
+	restoreVersion: protectedProcedure
+		.input(z.object({ versionId: z.string() }))
+		.mutation(async ({ ctx, input }) => {
+			const { versionManager } = await import("../services/version-manager");
+
+			// Get the version to verify project ownership
+			const version = await versionManager.getVersion(input.versionId);
+			if (!version) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Version not found",
+				});
+			}
+
+			// Verify project ownership
+			const project = await db.query.projects.findFirst({
+				where: and(
+					eq(projects.id, version.projectId),
+					eq(projects.userId, ctx.session.user.id),
+				),
+			});
+
+			if (!project) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Project not found",
+				});
+			}
+
+			await versionManager.restoreVersion(input.versionId);
+			return { success: true };
+		}),
+
+	// Get changelog for a project
+	getChangelog: protectedProcedure
+		.input(
+			z.object({
+				projectId: z.string(),
+				limit: z.number().min(1).max(200).optional().default(100),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			// Verify project ownership
+			const project = await db.query.projects.findFirst({
+				where: and(
+					eq(projects.id, input.projectId),
+					eq(projects.userId, ctx.session.user.id),
+				),
+			});
+
+			if (!project) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Project not found",
+				});
+			}
+
+			const { versionManager } = await import("../services/version-manager");
+			return await versionManager.getChangelog(input.projectId, input.limit);
+		}),
 });
