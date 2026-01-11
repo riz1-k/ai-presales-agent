@@ -27,7 +27,9 @@ export function handleError(error: unknown): ErrorResponse {
 			return {
 				code: "VALIDATION_ERROR",
 				message: error.message,
-				details: { field: error.field, ...error.details },
+				details: error.details
+					? { field: error.field, ...(typeof error.details === "object" ? error.details : {}) }
+					: { field: error.field },
 				retryable: false,
 			};
 		}
