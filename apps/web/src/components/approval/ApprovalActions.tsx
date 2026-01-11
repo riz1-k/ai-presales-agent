@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
+import { useMutation } from "@tanstack/react-query";
 import { CheckCircle2, Loader2, MessageSquare, XCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -37,36 +38,42 @@ export function ApprovalActions({
 	const [changesComments, setChangesComments] = useState("");
 	const [requestedChanges, setRequestedChanges] = useState<string[]>([""]);
 
-	const approveMutation = trpc.approvals.approveProject.useMutation({
-		onSuccess: () => {
-			toast.success("Project approved!");
-			setShowApproveDialog(false);
-			setApproveComments("");
-			onSuccess?.();
-		},
-		onError: (error) => toast.error(error.message),
-	});
+	const approveMutation = useMutation(
+		trpc.approvals.approveProject.mutationOptions({
+			onSuccess: () => {
+				toast.success("Project approved!");
+				setShowApproveDialog(false);
+				setApproveComments("");
+				onSuccess?.();
+			},
+			onError: (error) => toast.error(error.message),
+		}),
+	);
 
-	const rejectMutation = trpc.approvals.rejectProject.useMutation({
-		onSuccess: () => {
-			toast.success("Project rejected");
-			setShowRejectDialog(false);
-			setRejectReason("");
-			onSuccess?.();
-		},
-		onError: (error) => toast.error(error.message),
-	});
+	const rejectMutation = useMutation(
+		trpc.approvals.rejectProject.mutationOptions({
+			onSuccess: () => {
+				toast.success("Project rejected");
+				setShowRejectDialog(false);
+				setRejectReason("");
+				onSuccess?.();
+			},
+			onError: (error) => toast.error(error.message),
+		}),
+	);
 
-	const changesMutation = trpc.approvals.requestChanges.useMutation({
-		onSuccess: () => {
-			toast.success("Changes requested");
-			setShowChangesDialog(false);
-			setChangesComments("");
-			setRequestedChanges([""]);
-			onSuccess?.();
-		},
-		onError: (error) => toast.error(error.message),
-	});
+	const changesMutation = useMutation(
+		trpc.approvals.requestChanges.mutationOptions({
+			onSuccess: () => {
+				toast.success("Changes requested");
+				setShowChangesDialog(false);
+				setChangesComments("");
+				setRequestedChanges([""]);
+				onSuccess?.();
+			},
+			onError: (error) => toast.error(error.message),
+		}),
+	);
 
 	const handleApprove = () => {
 		approveMutation.mutate({

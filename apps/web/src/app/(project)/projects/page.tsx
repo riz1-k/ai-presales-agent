@@ -31,30 +31,38 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function ProjectsPage() {
 	const router = useRouter();
 	const [searchQuery, setSearchQuery] = useState("");
 	const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
 
-	const { data: projects, isLoading } = trpc.projects.list.useQuery();
-	const createProject = trpc.projects.create.useMutation({
-		onSuccess: (data) => {
-			router.push(`/ai?projectId=${data.id}`);
-		},
-	});
-	const duplicateProject = trpc.projects.duplicate.useMutation({
-		onSuccess: () => {
-			// Refetch projects list
-			trpc.useContext().projects.list.invalidate();
-		},
-	});
-	const deleteProject = trpc.projects.delete.useMutation({
-		onSuccess: () => {
-			trpc.useContext().projects.list.invalidate();
-			setDeleteProjectId(null);
-		},
-	});
+	const queryClient = useQueryClient();
+	const { data: projects, isLoading } = useQuery(trpc.projects.list.queryOptions());
+	const createProject = useMutation(
+		trpc.projects.create.mutationOptions({
+			onSuccess: (data) => {
+				router.push(`/ai?projectId=${data.id}`);
+			},
+		}),
+	);
+	const duplicateProject = useMutation(
+		trpc.projects.duplicate.mutationOptions({
+			onSuccess: () => {
+				// Refetch projects list
+				queryClient.invalidateQueries({ queryKey: trpc.projects.list.queryKey() });
+			},
+		}),
+	);
+	const deleteProject = useMutation(
+		trpc.projects.delete.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({ queryKey: trpc.projects.list.queryKey() });
+				setDeleteProjectId(null);
+			},
+		}),
+	);
 
 	const handleCreateProject = () => {
 		createProject.mutate({ projectName: "Untitled Project" });
@@ -96,7 +104,7 @@ export default function ProjectsPage() {
 			.join(" ");
 	};
 
-	const formatDate = (date: Date) => {
+	const formatDate = (date: Date | string) => {
 		return new Intl.DateTimeFormat("en-US", {
 			month: "short",
 			day: "numeric",
@@ -169,16 +177,18 @@ export default function ProjectsPage() {
 								</div>
 
 								<DropdownMenu>
-									<DropdownMenuTrigger asChild>
-										<Button
-											variant="ghost"
-											size="icon"
-											className="relative z-20"
-											onClick={(e) => e.preventDefault()}
-										>
-											<MoreVertical className="h-4 w-4" />
-										</Button>
-									</DropdownMenuTrigger>
+									<DropdownMenuTrigger
+										render={
+											<Button
+												variant="ghost"
+												size="icon"
+												className="relative z-20"
+												onClick={(e) => e.preventDefault()}
+											>
+												<MoreVertical className="h-4 w-4" />
+											</Button>
+										}
+									/>
 									<DropdownMenuContent align="end">
 										<DropdownMenuItem
 											onClick={(e) => {

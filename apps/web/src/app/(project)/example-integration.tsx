@@ -13,6 +13,7 @@ import { RecoveryModal } from "@/components/save-status/RecoveryModal";
 import { VersionHistory } from "@/components/save-status/VersionHistory";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { History, Save } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -34,24 +35,33 @@ export default function ProjectPageExample({ projectId }: { projectId: string })
 	const [showVersionHistory, setShowVersionHistory] = useState(false);
 
 	// Queries
-	const { data: project } = trpc.projects.getById.useQuery({ projectId });
-	const { data: versions } = trpc.projects.getVersions.useQuery({ projectId });
+	const queryClient = useQueryClient();
+	const { data: project } = useQuery(trpc.projects.getById.queryOptions({ projectId }));
+	const { data: versions } = useQuery(trpc.projects.getVersions.queryOptions({ projectId }));
 
 	// Mutations
-	const createVersion = trpc.projects.createVersion.useMutation({
-		onSuccess: () => {
-			toast.success("Version saved!");
-			trpc.useContext().projects.getVersions.invalidate({ projectId });
-		},
-	});
+	const createVersion = useMutation(
+		trpc.projects.createVersion.mutationOptions({
+			onSuccess: () => {
+				toast.success("Version saved!");
+				queryClient.invalidateQueries({ queryKey: trpc.projects.getVersions.queryKey({ projectId }) });
+			},
+		}),
+	);
 
-	const restoreVersion = trpc.projects.restoreVersion.useMutation({
-		onSuccess: () => {
-			toast.success("Version restored!");
-			// Reload project data
-			trpc.useContext().projects.getById.invalidate({ projectId });
-		},
-	});
+	const restoreVersion = useMutation(
+		trpc.projects.restoreVersion.mutationOptions({
+			onSuccess: () => {
+				toast.success("Version restored!");
+				// Reload project data
+				queryClient.invalidateQueries({ queryKey: trpc.projects.getById.queryKey({ projectId }) });
+			},
+		}),
+	);
+
+	const updateProjectMutation = useMutation(
+		trpc.projects.updateProjectData.mutationOptions(),
+	);
 
 	// Auto-save hook
 	const saveStatus = useAutoSave(projectData, {
@@ -64,7 +74,7 @@ export default function ProjectPageExample({ projectId }: { projectId: string })
 				requirements: JSON.stringify(projectData.requirements),
 			};
 
-			await trpc.projects.updateProjectData.mutate({
+			await updateProjectMutation.mutateAsync({
 				projectId,
 				changes,
 				changeSource: "manual_edit",

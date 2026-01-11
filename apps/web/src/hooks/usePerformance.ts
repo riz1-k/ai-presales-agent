@@ -26,7 +26,7 @@ export function useRenderPerformance(componentName: string, enabled = process.en
  * Hook to detect unnecessary re-renders
  */
 export function useWhyDidYouUpdate(name: string, props: Record<string, unknown>) {
-	const previousProps = useRef<Record<string, unknown>>();
+	const previousProps = useRef<Record<string, unknown>>(null);
 
 	useEffect(() => {
 		if (previousProps.current) {

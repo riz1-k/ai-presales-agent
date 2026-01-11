@@ -12,6 +12,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { AlertCircle, CheckCircle2, Loader2, Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -32,24 +33,26 @@ export function SubmitForApprovalModal({
 	const [message, setMessage] = useState("");
 
 	// Validate project
-	const { data: validation, isLoading: isValidating } =
-		trpc.approvals.validateProject.useQuery(
-			{ projectId },
-			{ enabled: open },
-		);
+	// Validate project
+	const { data: validation, isLoading: isValidating } = useQuery({
+		...trpc.approvals.validateProject.queryOptions({ projectId }),
+		enabled: open,
+	});
 
 	// Submit mutation
-	const submitMutation = trpc.approvals.submitForApproval.useMutation({
-		onSuccess: () => {
-			toast.success("Project submitted for approval!");
-			onOpenChange(false);
-			setMessage("");
-			onSuccess?.();
-		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
-	});
+	const submitMutation = useMutation(
+		trpc.approvals.submitForApproval.mutationOptions({
+			onSuccess: () => {
+				toast.success("Project submitted for approval!");
+				onOpenChange(false);
+				setMessage("");
+				onSuccess?.();
+			},
+			onError: (error) => {
+				toast.error(error.message);
+			},
+		}),
+	);
 
 	const handleSubmit = () => {
 		submitMutation.mutate({
@@ -89,7 +92,7 @@ export function SubmitForApprovalModal({
 												Required fields missing
 											</p>
 											<ul className="mt-2 space-y-1 text-sm text-red-700">
-												{validation.errors.map((error, i) => (
+												{validation.errors.map((error: string, i: number) => (
 													<li key={i}>• {error}</li>
 												))}
 											</ul>
@@ -108,7 +111,7 @@ export function SubmitForApprovalModal({
 												Recommendations
 											</p>
 											<ul className="mt-2 space-y-1 text-sm text-yellow-700">
-												{validation.warnings.map((warning, i) => (
+												{validation.warnings.map((warning: string, i: number) => (
 													<li key={i}>• {warning}</li>
 												))}
 											</ul>

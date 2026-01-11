@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 import {
 	CheckCircle2,
 	Clock,
@@ -16,10 +17,11 @@ interface ApprovalHistoryProps {
 }
 
 export function ApprovalHistory({ projectId }: ApprovalHistoryProps) {
-	const { data: history, isLoading } =
-		trpc.approvals.getApprovalHistory.useQuery({
+	const { data: history, isLoading } = useQuery(
+		trpc.approvals.getApprovalHistory.queryOptions({
 			projectId,
-		});
+		}),
+	);
 
 	if (isLoading) {
 		return (
@@ -65,7 +67,7 @@ export function ApprovalHistory({ projectId }: ApprovalHistoryProps) {
 		return <Badge variant={config.variant}>{config.label}</Badge>;
 	};
 
-	const formatDate = (date: Date) => {
+	const formatDate = (date: Date | string) => {
 		return new Intl.DateTimeFormat("en-US", {
 			month: "short",
 			day: "numeric",
@@ -121,7 +123,7 @@ export function ApprovalHistory({ projectId }: ApprovalHistoryProps) {
 											Requested Changes:
 										</p>
 										<ul className="space-y-1 text-sm text-orange-700">
-											{approval.requestedChanges.map((change, i) => (
+											{approval.requestedChanges.map((change: string, i: number) => (
 												<li key={i} className="flex items-start gap-2">
 													<span className="text-orange-500 mt-0.5">•</span>
 													<span>{change}</span>
@@ -132,8 +134,8 @@ export function ApprovalHistory({ projectId }: ApprovalHistoryProps) {
 								)}
 
 							{approval.updatedAt &&
-								approval.updatedAt.getTime() !==
-									approval.createdAt.getTime() && (
+								new Date(approval.updatedAt).getTime() !==
+									new Date(approval.createdAt).getTime() && (
 									<p className="text-xs text-muted-foreground">
 										Updated: {formatDate(approval.updatedAt)}
 									</p>

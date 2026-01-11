@@ -17,7 +17,7 @@ interface Version {
 	versionNumber: number;
 	changeSummary: string | null;
 	completenessScore: number | null;
-	createdAt: Date;
+	createdAt: Date | string;
 }
 
 interface VersionHistoryProps {
@@ -37,7 +37,7 @@ export function VersionHistory({
 }: VersionHistoryProps) {
 	const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
 
-	const formatTime = (date: Date) => {
+	const formatTime = (date: Date | string) => {
 		return new Intl.DateTimeFormat("en-US", {
 			month: "short",
 			day: "numeric",
@@ -45,7 +45,7 @@ export function VersionHistory({
 			hour: "numeric",
 			minute: "2-digit",
 			hour12: true,
-		}).format(date);
+		}).format(new Date(date));
 	};
 
 	return (

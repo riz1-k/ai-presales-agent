@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 import { FileText, Loader2, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -14,14 +15,15 @@ export default function ApprovalsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
-	const { data: pendingProjects, isLoading, refetch } =
-		trpc.approvals.getPendingApprovals.useQuery();
+	const { data: pendingProjects, isLoading, refetch } = useQuery(
+		trpc.approvals.getPendingApprovals.queryOptions()
+	);
 
 	const filteredProjects = pendingProjects?.filter((project) =>
 		project.projectName.toLowerCase().includes(searchQuery.toLowerCase()),
 	);
 
-	const formatDate = (date: Date) => {
+	const formatDate = (date: Date | string) => {
 		return new Intl.DateTimeFormat("en-US", {
 			month: "short",
 			day: "numeric",
