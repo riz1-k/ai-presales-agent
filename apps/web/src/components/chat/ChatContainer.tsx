@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { Children, type ReactNode, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -17,6 +17,8 @@ export function ChatContainer({
 	const containerRef = useRef<HTMLDivElement>(null);
 	const bottomRef = useRef<HTMLDivElement>(null);
 	const [showScrollButton, setShowScrollButton] = useState(false);
+	const prevChildrenCountRef = useRef(0);
+	const shouldAutoScrollRef = useRef(true);
 
 	// Check if user has scrolled up
 	const handleScroll = () => {
@@ -24,17 +26,45 @@ export function ChatContainer({
 		const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
 		const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
 		setShowScrollButton(!isNearBottom);
+		shouldAutoScrollRef.current = isNearBottom;
 	};
 
-	// Auto-scroll to bottom on new messages
+	// Auto-scroll to bottom on new messages or loading state changes
 	useEffect(() => {
-		if (!showScrollButton) {
-			bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+		const childrenCount = Children.count(children);
+		const hasNewMessages = childrenCount > prevChildrenCountRef.current;
+
+		// Auto-scroll if:
+		// 1. New messages arrived (always scroll for new messages)
+		// 2. Loading state changed and user is near bottom (for streaming updates)
+		if (hasNewMessages) {
+			// Always scroll when new messages arrive
+			setTimeout(() => {
+				bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+				shouldAutoScrollRef.current = true;
+			}, 0);
+		} else if (isLoading && shouldAutoScrollRef.current) {
+			// Scroll during streaming if user is near bottom
+			setTimeout(() => {
+				bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+			}, 0);
 		}
-	}, [showScrollButton]);
+
+		prevChildrenCountRef.current = childrenCount;
+	}, [children, isLoading]);
+
+	// Initial scroll to bottom on mount
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			bottomRef.current?.scrollIntoView({ behavior: "auto" });
+		}, 100);
+		return () => clearTimeout(timer);
+	}, []);
 
 	const scrollToBottom = () => {
+		shouldAutoScrollRef.current = true;
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+		setShowScrollButton(false);
 	};
 
 	return (

@@ -13,7 +13,7 @@ export const AI_CONFIG = {
 	provider: env.AI_PROVIDER as AIProvider,
 	models: {
 		gemini: "gemini-2.5-flash",
-		openai: "gpt-5-mini",
+		openai: "gpt-5",
 	},
 	temperature: 0.7,
 	maxTokens: 4096,

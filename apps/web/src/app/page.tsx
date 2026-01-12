@@ -54,15 +54,6 @@ export default function Home() {
 								Get Started <ArrowRight className="h-5 w-5" />
 							</Button>
 						</Link>
-						<Link href="/ai">
-							<Button
-								size="lg"
-								variant="outline"
-								className="h-12 px-8 font-semibold text-lg"
-							>
-								Try Demo
-							</Button>
-						</Link>
 					</div>
 				</div>
 			</section>

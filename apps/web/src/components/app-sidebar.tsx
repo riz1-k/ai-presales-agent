@@ -158,12 +158,12 @@ export function AppSidebar() {
 							<span>Collapse Sidebar</span>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
-					<SidebarMenuItem>
+					<SidebarMenuItem className="w-full">
 						<DropdownMenu>
-							<DropdownMenuTrigger>
+							<DropdownMenuTrigger className="w-full">
 								<SidebarMenuButton
 									size="lg"
-									className="flex flex-row-reverse data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+									className="flex w-full flex-row-reverse data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 								>
 									<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
 										<Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

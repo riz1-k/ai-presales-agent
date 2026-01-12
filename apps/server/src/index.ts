@@ -133,30 +133,37 @@ function getMessageText(message: UIMessage): string {
 function cleanMessagesForAPI(messages: UIMessage[]): UIMessage[] {
 	return messages
 		.map((msg) => {
+			// Create a clean message object, explicitly only including allowed properties
+			// This prevents any reasoning, id, or other properties from being passed through
+			const cleanMsg: UIMessage = {
+				role: msg.role,
+			};
+
 			// If message has parts, filter out reasoning items and keep only text parts
 			if (Array.isArray(msg.parts)) {
 				const textParts = msg.parts.filter(
-					(part: MessagePart) => part.type === "text",
+					(part: MessagePart) => part.type === "text" && part.text,
 				);
 				if (textParts.length > 0) {
 					// Return message with only text parts, no reasoning items
-					return {
-						...msg,
-						parts: textParts,
-						content: textParts
-							.map((part: MessagePart) => part.text || "")
-							.join(""),
-					};
+					cleanMsg.parts = textParts.map((part) => ({
+						type: "text",
+						text: part.text || "",
+					}));
+					cleanMsg.content = textParts
+						.map((part: MessagePart) => part.text || "")
+						.join("");
+				} else {
+					// If no text parts, return message with empty content
+					cleanMsg.parts = [];
+					cleanMsg.content = "";
 				}
-				// If no text parts, return message with empty content
-				return {
-					...msg,
-					parts: [],
-					content: "",
-				};
+			} else if (typeof msg.content === "string") {
+				// If message has string content, use it directly
+				cleanMsg.content = msg.content;
 			}
-			// Return message as-is if it doesn't have parts
-			return msg;
+
+			return cleanMsg;
 		})
 		.filter((msg) => {
 			// Remove messages with no content
@@ -295,11 +302,21 @@ app.post("/ai", async (c) => {
 	// Clean messages to remove reasoning items that cause OpenAI API errors
 	const cleanedMessages = cleanMessagesForAPI(uiMessages);
 
+	// Additional safety: ensure no reasoning properties exist before conversion
+	// This prevents OpenAI API errors about missing reasoning items
+	const sanitizedMessages: UIMessage[] = cleanedMessages.map((msg) => {
+		const sanitized: UIMessage = { role: msg.role };
+		if (msg.content) sanitized.content = msg.content;
+		if (msg.parts) sanitized.parts = msg.parts;
+		// Explicitly exclude any reasoning-related properties
+		return sanitized;
+	});
+
 	const result = streamText({
 		model: getAIModel(),
 		system: systemPrompt,
 		messages: await convertToModelMessages(
-			cleanedMessages as Parameters<typeof convertToModelMessages>[0],
+			sanitizedMessages as Parameters<typeof convertToModelMessages>[0],
 		),
 		temperature: AI_CONFIG.temperature,
 		maxOutputTokens: AI_CONFIG.maxTokens,
