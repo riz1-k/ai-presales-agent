@@ -186,18 +186,16 @@ export default function ProjectsPage() {
 								</div>
 
 								<DropdownMenu>
-									<DropdownMenuTrigger
-										render={
-											<Button
-												variant="ghost"
-												size="icon"
-												className="relative z-20"
-												onClick={(e) => e.preventDefault()}
-											>
-												<MoreVertical className="h-4 w-4" />
-											</Button>
-										}
-									/>
+									<DropdownMenuTrigger asChild>
+										<Button
+											variant="ghost"
+											size="icon"
+											className="relative z-20"
+											onClick={(e) => e.preventDefault()}
+										>
+											<MoreVertical className="h-4 w-4" />
+										</Button>
+									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end">
 										<DropdownMenuItem
 											onClick={(e) => {
