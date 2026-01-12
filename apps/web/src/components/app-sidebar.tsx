@@ -10,7 +10,6 @@ import {
 	PanelLeft,
 	Settings2,
 	Sun,
-	Users2,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
