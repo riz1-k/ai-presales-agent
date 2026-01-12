@@ -22,16 +22,16 @@ export async function generateWBS(
 					tasks: z.array(
 						z.object({
 							name: z.string(),
-							description: z.string().optional(),
+							description: z.string(),
 							estimatedHours: z.number(),
-							priority: z.enum(["high", "medium", "low"]).optional(),
+							priority: z.enum(["high", "medium", "low"]),
 						}),
 					),
 				}),
 			),
 		}),
 		system:
-			"You are a professional Project Manager and Solutions Architect. Your task is to create a comprehensive Work Breakdown Structure (WBS) for a software project. Organize the project into 4-6 logical phases (e.g., Discovery & Requirements, UI/UX Design, Development Sprints, QA & Testing, Deployment & Launch). For each phase, provide 3-5 detailed tasks with realistic hourly estimates. Base your breakdown on the project description, objectives, and technical requirements provided.",
+			"You are a professional Project Manager and Solutions Architect. Your task is to create a comprehensive Work Breakdown Structure (WBS) for a software project. Organize the project into 4-6 logical phases (e.g., Discovery & Requirements, UI/UX Design, Development Sprints, QA & Testing, Deployment & Launch). For each phase, provide 3-5 detailed tasks with realistic hourly estimates. Each task must include a name, description, estimatedHours, and priority (high, medium, or low). Base your breakdown on the project description, objectives, and technical requirements provided.",
 		prompt: `Project Name: ${data.info?.projectName}\nDescription: ${data.info?.projectDescription}\nObjectives: ${JSON.stringify(data.info?.objectives)}\nTechnical Requirements: ${JSON.stringify(data.technical)}\nTimeline: ${data.timelineBudget?.durationWeeks} weeks\nInitial Deliverables: ${JSON.stringify(data.deliverables)}\n\nCreate a professional, detailed WBS.`,
 	});
 
@@ -43,7 +43,10 @@ export async function generateWBS(
 			name: p.name,
 			tasks: p.tasks.map((t, tIdx) => ({
 				id: `task-${pIdx}-${tIdx}`,
-				...t,
+				name: t.name,
+				description: t.description?.trim() || undefined,
+				estimatedHours: t.estimatedHours,
+				priority: t.priority || undefined,
 			})),
 		})),
 	};

@@ -127,6 +127,50 @@ function getMessageText(message: UIMessage): string {
 }
 
 /**
+ * Clean messages to remove reasoning items and other incompatible structures
+ * This fixes OpenAI API errors about reasoning items missing required following items
+ */
+function cleanMessagesForAPI(messages: UIMessage[]): UIMessage[] {
+	return messages
+		.map((msg) => {
+			// If message has parts, filter out reasoning items and keep only text parts
+			if (Array.isArray(msg.parts)) {
+				const textParts = msg.parts.filter(
+					(part: MessagePart) => part.type === "text",
+				);
+				if (textParts.length > 0) {
+					// Return message with only text parts, no reasoning items
+					return {
+						...msg,
+						parts: textParts,
+						content: textParts
+							.map((part: MessagePart) => part.text || "")
+							.join(""),
+					};
+				}
+				// If no text parts, return message with empty content
+				return {
+					...msg,
+					parts: [],
+					content: "",
+				};
+			}
+			// Return message as-is if it doesn't have parts
+			return msg;
+		})
+		.filter((msg) => {
+			// Remove messages with no content
+			if (typeof msg.content === "string") {
+				return msg.content.length > 0;
+			}
+			if (Array.isArray(msg.parts)) {
+				return msg.parts.length > 0;
+			}
+			return false;
+		});
+}
+
+/**
  * Save messages to database
  */
 async function saveMessages(projectId: string, messages: UIMessage[]) {
@@ -248,10 +292,15 @@ app.post("/ai", async (c) => {
 		}
 	}
 
+	// Clean messages to remove reasoning items that cause OpenAI API errors
+	const cleanedMessages = cleanMessagesForAPI(uiMessages);
+
 	const result = streamText({
 		model: getAIModel(),
 		system: systemPrompt,
-		messages: await convertToModelMessages(uiMessages),
+		messages: await convertToModelMessages(
+			cleanedMessages as Parameters<typeof convertToModelMessages>[0],
+		),
 		temperature: AI_CONFIG.temperature,
 		maxOutputTokens: AI_CONFIG.maxTokens,
 		onFinish: async ({ text }) => {
@@ -333,4 +382,9 @@ app.get("/", (c) => {
 	return c.text("OK");
 });
 
-export default app;
+// Explicit Bun.serve with really huge timeout (1 year in seconds)
+Bun.serve({
+	fetch: app.fetch,
+	port: process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 3000,
+	idleTimeout: 255,
+});
