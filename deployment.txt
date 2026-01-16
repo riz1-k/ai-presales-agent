@@ -1,0 +1,64 @@
+Deployment Documentation
+=========================
+
+This document outlines the steps to deploy the AI Presales Agent application.
+
+Tech Stack:
+- Frontend: Next.js (apps/web) -> Vercel
+- Backend: Hono/Bun (apps/server) -> Railway
+- Database: LibSQL -> Turso
+
+1. Database Setup (Turso)
+-------------------------
+1. Install Turso CLI: `curl -sSfL https://get.turso.tech/install.sh | bash`
+2. Login: `turso auth login`
+3. Create a new database: `turso db create ai-presales-agent`
+4. Get the database URL: `turso db show ai-presales-agent --url`
+   - It should look like: `libsql://ai-presales-agent-your-user.turso.io`
+5. Get an authentication token: `turso db tokens create ai-presales-agent`
+6. Combine them for your `DATABASE_URL`:
+   `libsql://ai-presales-agent-your-user.turso.io?authToken=YOUR_TOKEN_HERE`
+   (Alternatively, if the client supports it, you can keep them separate, but the current code expects them in the URL or the URL to be complete).
+
+2. Backend Deployment (Railway)
+------------------------------
+1. Create a new project on Railway.
+2. Connect your GitHub repository.
+3. Set the Root Directory to `/` (Railway will detect the monorepo).
+4. Go to Settings -> Build & Deploy:
+   - Build Command: `bun install && turbo build --filter=server`
+   - Start Command: `bun run apps/server/dist/index.js`
+5. Add the following Environment Variables:
+   - `DATABASE_URL`: (Your Turso connection URL with token)
+   - `BETTER_AUTH_SECRET`: (Generate a random 32+ char string)
+   - `BETTER_AUTH_URL`: `https://your-backend-url.up.railway.app`
+   - `CORS_ORIGIN`: `https://your-frontend-url.vercel.app`
+   - `AI_PROVIDER`: `gemini` or `openai`
+   - `GOOGLE_GENERATIVE_AI_API_KEY`: (If using Gemini)
+   - `OPENAI_API_KEY`: (If using OpenAI)
+   - `NODE_ENV`: `production`
+   - `PORT`: `3000` (Railway usually provides this automatically)
+
+3. Frontend Deployment (Vercel)
+------------------------------
+1. Create a new project on Vercel.
+2. Connect your GitHub repository.
+3. Select `apps/web` as the Root Directory.
+4. Vercel should automatically detect Next.js.
+5. In the Build & Development Settings:
+   - Build Command: `cd ../.. && bun install && turbo build --filter=web`
+   - (Note: Vercel might need to run from the root to access workspace packages).
+6. Add the following Environment Variables:
+   - `NEXT_PUBLIC_SERVER_URL`: `https://your-backend-url.up.railway.app`
+   - `BETTER_AUTH_URL`: `https://your-backend-url.up.railway.app` (Backend URL where auth handler lives)
+
+4. Database Migrations
+---------------------
+To push the schema to your Turso database:
+1. Ensure you have `DATABASE_URL` set in your local environment or in `apps/server/.env`.
+2. Run: `bun run db:push` from the root of the project.
+
+Summary of URLs
+--------------
+- Frontend URL: Used in Backend's `CORS_ORIGIN`.
+- Backend URL: Used in Frontend's `NEXT_PUBLIC_SERVER_URL` and Backend's `BETTER_AUTH_URL`.

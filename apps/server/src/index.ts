@@ -10,7 +10,7 @@ import {
 import { env } from "@ai-presales-agent/env/server";
 import { trpcServer } from "@hono/trpc-server";
 import { convertToModelMessages, streamText } from "ai";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -203,7 +203,10 @@ async function loadExtractedData(
 	projectId: string,
 ): Promise<ExtractedProjectData | undefined> {
 	const data = await db.query.projectData.findFirst({
-		where: eq(projectData.projectId, projectId),
+		where: and(
+			eq(projectData.projectId, projectId),
+			eq(projectData.fieldName, "extractedData"),
+		),
 	});
 
 	if (!data || !data.fieldValue) return undefined;
@@ -223,7 +226,10 @@ async function saveExtractedData(
 	extractedData: ExtractedProjectData,
 ): Promise<void> {
 	const existing = await db.query.projectData.findFirst({
-		where: eq(projectData.projectId, projectId),
+		where: and(
+			eq(projectData.projectId, projectId),
+			eq(projectData.fieldName, "extractedData"),
+		),
 	});
 
 	const jsonValue = JSON.stringify(extractedData);
@@ -251,21 +257,48 @@ async function saveExtractedData(
  */
 async function runExtractionBackground(projectId: string): Promise<void> {
 	try {
+		console.log(`[Extraction] Starting for project ${projectId}`);
+
 		// Load conversation history
 		const history = await loadConversationHistory(projectId);
-		if (history.length === 0) return;
+		console.log(
+			`[Extraction] Loaded ${history.length} messages for project ${projectId}`,
+		);
+
+		if (history.length === 0) {
+			console.log(
+				`[Extraction] No history found for project ${projectId}, skipping`,
+			);
+			return;
+		}
 
 		// Load existing extracted data
 		const existingData = await loadExtractedData(projectId);
+		console.log(
+			`[Extraction] Existing data for project ${projectId}:`,
+			existingData ? "found" : "none",
+		);
 
 		// Run extraction
 		const result = await extractProjectData(history, existingData);
+		console.log(
+			`[Extraction] Result for project ${projectId}: success=${result.success}, changedFields=${result.changedFields.length}`,
+		);
 
-		if (result.success && result.changedFields.length > 0) {
-			// Save updated data
-			await saveExtractedData(projectId, result.updatedData);
-			console.log(
-				`[Extraction] Project ${projectId}: Updated fields: ${result.changedFields.join(", ")}`,
+		if (result.success) {
+			// Always save if extraction succeeded - this ensures first extraction is saved
+			// even if changedFields is empty (comparing to undefined existing data)
+			const hasData = Object.keys(result.updatedData).length > 0;
+			if (hasData) {
+				await saveExtractedData(projectId, result.updatedData);
+				console.log(
+					`[Extraction] Project ${projectId}: Saved extracted data. Changed fields: ${result.changedFields.join(", ") || "(initial extraction)"}`,
+				);
+			}
+		} else {
+			console.error(
+				`[Extraction] Extraction failed for project ${projectId}:`,
+				result.error,
 			);
 		}
 	} catch (error) {
@@ -291,11 +324,17 @@ app.post("/ai", async (c) => {
 		}
 
 		// Get the last user message to save
+		// Get the last user message to save
 		const lastUserMessage = uiMessages
 			.filter((m: { role: string }) => m.role === "user")
 			.pop();
+
 		if (lastUserMessage) {
 			await saveMessages(projectId, [lastUserMessage]);
+			// Run extraction right after user message is saved to start extraction immediately
+			runExtractionBackground(projectId).catch((err) => {
+				console.error("[Extraction] Pre-stream background error:", err);
+			});
 		}
 	}
 

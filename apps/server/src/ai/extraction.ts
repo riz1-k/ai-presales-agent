@@ -1,5 +1,6 @@
 import { generateObject } from "ai";
-import { getAIModel } from "./config";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import { getAIModel, getCurrentProvider } from "./config";
 import {
 	type ExtractedProjectData,
 	ExtractedProjectDataSchema,
@@ -65,6 +66,62 @@ When extracting team requirements, use these predefined software development rol
 Extract all relevant project information from the conversation, making smart inferences where appropriate.`;
 
 /**
+ * Transform JSON schema to ensure all properties are in required array
+ * OpenAI's response format requires all properties to be in the required array
+ */
+function transformSchemaForOpenAI(schema: unknown): unknown {
+	if (typeof schema !== "object" || schema === null) {
+		return schema;
+	}
+
+	const jsonSchema = schema as Record<string, unknown>;
+
+	// Handle objects with properties
+	if (jsonSchema.type === "object" && jsonSchema.properties) {
+		const properties = jsonSchema.properties as Record<string, unknown>;
+		const propertyKeys = Object.keys(properties);
+
+		// Recursively transform nested objects and arrays
+		for (const key of propertyKeys) {
+			const prop = properties[key];
+			if (typeof prop === "object" && prop !== null) {
+				// Handle optional fields that might be wrapped in anyOf
+				if (Array.isArray((prop as any).anyOf)) {
+					// Transform each option in anyOf
+					(prop as any).anyOf = (prop as any).anyOf.map((option: unknown) =>
+						transformSchemaForOpenAI(option),
+					);
+				} else {
+					properties[key] = transformSchemaForOpenAI(prop);
+				}
+			}
+		}
+
+		// Ensure all properties are in the required array (OpenAI requirement)
+		jsonSchema.required = propertyKeys;
+	}
+
+	// Handle array items
+	if (jsonSchema.type === "array" && jsonSchema.items) {
+		jsonSchema.items = transformSchemaForOpenAI(jsonSchema.items);
+	}
+
+	// Handle anyOf/oneOf for union types
+	if (Array.isArray(jsonSchema.anyOf)) {
+		jsonSchema.anyOf = jsonSchema.anyOf.map((option: unknown) =>
+			transformSchemaForOpenAI(option),
+		);
+	}
+	if (Array.isArray(jsonSchema.oneOf)) {
+		jsonSchema.oneOf = jsonSchema.oneOf.map((option: unknown) =>
+			transformSchemaForOpenAI(option),
+		);
+	}
+
+	return jsonSchema;
+}
+
+/**
  * Extract structured project data from conversation history
  */
 export async function extractProjectData(
@@ -85,6 +142,10 @@ Conversation to analyze:
 ${conversationText}
 
 Extract and update the project information based on this conversation. Only update fields where new information is provided.`;
+
+		// The schemas are now structured to ensure all properties are in the required array
+		// by using .nullable() instead of .optional(), which makes them required in Zod
+		// but allows null values that we transform to undefined
 
 		const result = await generateObject({
 			model: getAIModel(),

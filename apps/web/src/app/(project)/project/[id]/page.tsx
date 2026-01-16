@@ -32,6 +32,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 	const [projectName, setProjectName] = useState("New Project");
 	const [activeTab, setActiveTab] = useState<DocumentTabType>("proposal");
 
+	const {
+		data: extractedData,
+		isLoading: isLoadingExtracted,
+		refetch: refetchExtracted,
+	} = useExtractedData({ projectId, pollInterval: 3000 });
+
 	// Hooks
 	const {
 		messages,
@@ -39,10 +45,15 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 		isLoadingHistory,
 		error: chatError,
 		sendMessage,
-	} = useProjectChat({ projectId });
-
-	const { data: extractedData, isLoading: isLoadingExtracted } =
-		useExtractedData({ projectId, pollInterval: 3000 });
+	} = useProjectChat({
+		projectId,
+		onFinish: () => {
+			// Trigger refetch when AI finishes response
+			// Wait a moment for server background extraction to finish
+			setTimeout(() => refetchExtracted(), 1000);
+			setTimeout(() => refetchExtracted(), 3000);
+		},
+	});
 
 	const {
 		documents,
@@ -105,7 +116,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 						) : messages.length === 0 ? (
 							<ChatEmptyState onSuggestionClick={sendMessage} />
 						) : (
-							<ChatContainer isLoading={isLoading}>
+							<ChatContainer
+								isLoading={
+									isLoading &&
+									messages[messages.length - 1]?.role !== "assistant"
+								}
+							>
 								{messages.map((message) => {
 									const content =
 										"parts" in message && message.parts

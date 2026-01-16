@@ -24,7 +24,8 @@
 		"dotenv": "catalog:",
 		"drizzle-orm": "^0.45.1",
 		"hono": "^4.8.2",
-		"zod": "catalog:"
+		"zod": "catalog:",
+		"zod-to-json-schema": "^3.25.1"
 	},
 	"devDependencies": {
 		"@ai-presales-agent/config": "workspace:*",

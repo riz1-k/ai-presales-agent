@@ -7,12 +7,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface UseProjectChatOptions {
 	projectId: string;
+	onFinish?: (message: { content: string }) => void;
 }
 
 /**
  * Custom hook wrapping useChat for project-scoped conversations
  */
-export function useProjectChat({ projectId }: UseProjectChatOptions) {
+export function useProjectChat({ projectId, onFinish }: UseProjectChatOptions) {
 	const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
 	// Create transport with project ID in the body
@@ -27,9 +28,19 @@ export function useProjectChat({ projectId }: UseProjectChatOptions) {
 		[projectId],
 	);
 
-	// Configure useChat with project context
 	const chat = useChat({
 		transport,
+		onFinish: (event) => {
+			if (onFinish) {
+				const content =
+					"parts" in event.message && Array.isArray(event.message.parts)
+						? event.message.parts
+								.map((p) => (p.type === "text" ? p.text : ""))
+								.join("")
+						: (event.message as any).content || "";
+				onFinish({ content });
+			}
+		},
 	});
 
 	const { messages, setMessages, status, error, sendMessage } = chat;
